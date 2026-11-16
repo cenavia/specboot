@@ -1,0 +1,25 @@
+{
+  "_comment": "Agentic layer INSIDE the backend (same deployable). LangGraph and related skills are topics of the backend front, not a separate 'ai' front. Declare a separate 'ai' front only when the agents are their own deployable with their own folder, checks and release cycle.",
+  "fronts": {
+    "backend": {
+      "path": "backend",
+      "core": ["python-project-structure", "fastapi-templates", "python-code-style", "python-testing-patterns", "python-type-safety"],
+      "topics": [
+        "langgraph-fundamentals", "langgraph-persistence", "langgraph-hitl",
+        "rag-implementation", "prompt-engineering-patterns", "llm-evaluation",
+        "python-error-handling", "python-configuration", "python-observability", "async-python-patterns"
+      ],
+      "decisions": {
+        "agentic-layer": "In-process module of the backend (for example backend/app/agents/). It follows the backend standards for layout, typing and tests; LangGraph skills are loaded only for tasks that touch it."
+      },
+      "checks": ["uv run ruff check .", "uv run ruff format --check .", "uv run mypy .", "uv run pytest"]
+    },
+    "frontend": {
+      "path": "frontend",
+      "core": ["react-architecture", "react-new-project", "react-core", "react-testing"],
+      "topics": ["react-state", "react-data", "react-forms", "react-routing", "react-styling", "react-performance"],
+      "decisions": { "architecture": "Screaming (feature-first), the default of react-architecture" },
+      "checks": ["npm run lint", "npm run typecheck", "npm run test -- --run"]
+    }
+  }
+}

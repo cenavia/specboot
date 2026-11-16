@@ -1,0 +1,18 @@
+{
+  "fronts": {
+    "backend": {
+      "path": "backend",
+      "core": ["python-project-structure", "fastapi-templates", "python-code-style", "python-testing-patterns", "python-type-safety"],
+      "topics": ["python-error-handling", "python-configuration", "python-observability", "async-python-patterns", "python-resilience", "python-background-jobs"],
+      "decisions": {},
+      "checks": ["ruff check .", "ruff format --check .", "mypy .", "pytest"]
+    },
+    "frontend": {
+      "path": "frontend",
+      "core": ["react-architecture", "react-new-project", "react-core", "react-testing"],
+      "topics": ["react-state", "react-data", "react-forms", "react-routing", "react-styling", "react-performance"],
+      "decisions": { "architecture": "Screaming (feature-first), the default of react-architecture" },
+      "checks": ["npm run lint", "npm run typecheck", "npm run test -- --run"]
+    }
+  }
+}

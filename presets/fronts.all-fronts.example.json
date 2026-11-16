@@ -1,0 +1,46 @@
+{
+  "fronts": {
+    "backend": {
+      "path": "backend",
+      "core": ["python-project-structure", "fastapi-templates", "python-code-style", "python-testing-patterns"],
+      "topics": [],
+      "decisions": {},
+      "checks": ["ruff check .", "mypy .", "pytest"]
+    },
+    "frontend": {
+      "path": "frontend",
+      "core": ["react-architecture", "react-core", "react-testing"],
+      "topics": [],
+      "decisions": { "architecture": "Screaming (feature-first)" },
+      "checks": ["npm run lint", "npm run typecheck", "npm run test -- --run"]
+    },
+    "mobile": {
+      "path": "mobile",
+      "core": [],
+      "topics": ["react-native-design", "mobile-ios-design", "mobile-android-design"],
+      "decisions": {},
+      "checks": []
+    },
+    "ai": {
+      "path": "agents",
+      "core": [],
+      "topics": ["langgraph-fundamentals", "langgraph-persistence", "langgraph-hitl", "rag-implementation", "prompt-engineering-patterns", "llm-evaluation"],
+      "decisions": {},
+      "checks": []
+    },
+    "ml": {
+      "path": "ml",
+      "core": [],
+      "topics": [],
+      "decisions": {},
+      "checks": []
+    },
+    "data-science": {
+      "path": "analysis",
+      "core": [],
+      "topics": [],
+      "decisions": {},
+      "checks": []
+    }
+  }
+}

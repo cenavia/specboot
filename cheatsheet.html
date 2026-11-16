@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>specboot · Cheatsheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-primary:#0d1117;--bg-card:#161b22;--bg-code:#1c2128;--bg-row:#1a2029;
+  --text-primary:#e6edf3;--text-secondary:#8b949e;--text-code:#e6edf3;--border-color:#30363d;
+  --accent-1:#58a6ff;--accent-2:#3fb950;--accent-3:#d2a8ff;--accent-4:#f0883e;--accent-5:#f778ba;--accent-6:#79c0ff;
+  --accent-7:#e3b341;--accent-8:#56d4dd;--accent-9:#ff7b72;--accent-10:#a5d6ff;--accent-11:#7ee787;
+  --mono:'JetBrains Mono','Fira Code','Source Code Pro','Cascadia Code',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg-primary);color:var(--text-primary);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif;padding:24px 20px 40px}
+a{color:var(--accent-1);text-decoration:none}
+code{font-family:var(--mono);font-size:12.5px;background:rgba(110,118,129,.18);padding:1px 5px;border-radius:4px;color:var(--text-code);white-space:nowrap}
+header{max-width:1440px;margin:0 auto 20px}
+.title-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-size:30px;font-weight:800;letter-spacing:-.02em}
+h1 span{background:linear-gradient(90deg,var(--accent-1),var(--accent-3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.version{font:600 12px var(--mono);color:var(--accent-2);border:1px solid var(--accent-2);border-radius:999px;padding:2px 10px}
+.subtitle{color:var(--text-secondary);margin-top:6px;max-width:900px}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.search{flex:1 1 280px;max-width:420px;position:relative}
+.search input{width:100%;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);border-radius:8px;padding:9px 12px 9px 34px;font:inherit;outline:none}
+.search input:focus{border-color:var(--accent-1)}
+.search::before{content:"🔍";position:absolute;left:11px;top:8px;font-size:13px;opacity:.7}
+.toolbar button{background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-secondary);border-radius:8px;padding:8px 12px;font:500 12.5px Inter,sans-serif;cursor:pointer}
+.toolbar button:hover{color:var(--text-primary);border-color:var(--text-secondary)}
+nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+nav a{font-size:12.5px;color:var(--text-secondary);background:var(--bg-card);border:1px solid var(--border-color);border-left:3px solid var(--c);padding:4px 10px;border-radius:6px}
+nav a:hover{color:var(--text-primary)}
+main.grid{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.span-2{grid-column:span 2}.span-3{grid-column:1/-1}
+.section-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;break-inside:avoid;scroll-margin-top:16px}
+.section-header{padding:11px 16px;font-weight:600;font-size:15px;border-bottom:2px solid var(--c);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;background:linear-gradient(90deg,color-mix(in srgb,var(--c) 14%,transparent),transparent 70%)}
+.section-header .num{font:700 12px var(--mono);color:var(--c);border:1px solid var(--c);border-radius:6px;padding:1px 6px}
+.section-header .chev{margin-left:auto;color:var(--text-secondary);transition:transform .2s;font-size:12px}
+.section-card.collapsed .chev{transform:rotate(-90deg)}
+.section-card.collapsed .section-content{display:none}
+.badge{font:600 10.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:999px;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
+.section-content{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.sub{font:600 11.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--c)}
+p.note{color:var(--text-secondary);font-size:13px}
+p.note strong{color:var(--text-primary)}
+.tip{border-left:3px solid var(--accent-7);background:rgba(227,179,65,.08);padding:8px 12px;border-radius:0 6px 6px 0;font-size:13px;color:var(--text-primary)}
+.warn{border-left:3px solid var(--accent-9);background:rgba(255,123,114,.08);padding:8px 12px;border-radius:0 6px 6px 0;font-size:13px}
+hr.sep{border:none;border-top:1px dashed var(--border-color)}
+.code{position:relative;background:var(--bg-code);border:1px solid var(--border-color);border-radius:6px}
+.code .lang{position:absolute;top:6px;right:8px;font:600 10px var(--mono);text-transform:uppercase;color:var(--text-secondary);letter-spacing:.06em}
+.code .copy{position:absolute;bottom:6px;right:8px;font:500 11px Inter,sans-serif;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-secondary);border-radius:5px;padding:2px 8px;cursor:pointer;opacity:0;transition:opacity .15s}
+.code:hover .copy{opacity:1}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto;font:12.5px/1.6 var(--mono);color:var(--text-code);white-space:pre}
+.cm{color:#8b949e;font-style:italic}.st{color:#a5d6ff}.kw{color:#ff7b72}.fn{color:#d2a8ff}.nu{color:#f0883e}.op{color:#79c0ff}.ty{color:#7ee787}.pp{color:#e3b341}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--c);padding:7px 10px;border-bottom:1px solid var(--border-color);background:rgba(255,255,255,.02)}
+td{padding:7px 10px;border-bottom:1px solid var(--border-color);vertical-align:top}
+tr:nth-child(even) td{background:var(--bg-row)}
+tr:last-child td{border-bottom:none}
+td code{white-space:normal;overflow-wrap:anywhere}
+.tbl table{min-width:100%}
+td.step{font:700 12px var(--mono);color:var(--c);width:34px;text-align:center}
+.tbl{border:1px solid var(--border-color);border-radius:6px;overflow:hidden;overflow-x:auto}
+ol.auth{list-style:none;counter-reset:a;display:flex;flex-direction:column;gap:6px}
+ol.auth li{counter-increment:a;display:flex;gap:10px;align-items:center;background:var(--bg-code);border:1px solid var(--border-color);border-radius:6px;padding:8px 12px}
+ol.auth li::before{content:counter(a);font:700 12px var(--mono);color:var(--bg-primary);background:var(--c);border-radius:4px;min-width:22px;text-align:center;padding:1px 0}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.flow span{background:var(--bg-code);border:1px solid var(--border-color);border-radius:6px;padding:4px 9px}
+.flow i{color:var(--text-secondary);font-style:normal}
+.hidden{display:none!important}
+#empty{max-width:1440px;margin:20px auto;color:var(--text-secondary);text-align:center}
+footer{max-width:1440px;margin:28px auto 0;color:var(--text-secondary);font-size:12px;text-align:center}
+@media (max-width:1180px){main.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.span-2{grid-column:1/-1}}
+@media (max-width:720px){main.grid{grid-template-columns:1fr}.span-2,.span-3{grid-column:auto}body{padding:16px 12px}h1{font-size:24px}}
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  .toolbar,nav,.copy{display:none}
+  .section-card{border:1px solid #ccc;background:#fff}
+  .section-card.collapsed .section-content{display:flex}
+  .code,code{background:#f5f5f5;color:#000;border-color:#ddd}
+  .code pre{white-space:pre-wrap;color:#000}
+  td,tr:nth-child(even) td{background:#fff;color:#000;border-color:#ddd}
+  .subtitle,p.note{color:#333}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1>📘 <span>specboot</span> · guía rápida</h1>
+    <span class="version">v0.6.1</span>
+  </div>
+  <p class="subtitle">Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield).</p>
+  <div class="toolbar">
+    <label class="search"><input id="q" type="search" placeholder="Buscar comando, ruta o skill…" aria-label="Buscar"></label>
+    <button id="toggle" type="button">Colapsar todo</button>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main class="grid" id="grid">
+
+<!-- 1 -->
+<section class="section-card span-2" id="rutas" style="--c:var(--accent-1)">
+  <div class="section-header"><span class="num">01</span>📁 Dónde va cada cosa<span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="tbl"><table>
+      <tr><th>Qué</th><th>Ruta exacta</th><th>Quién lo pone</th></tr>
+      <tr><td>El arnés</td><td><code>~/.specboot/</code></td><td>Tú, con <code>git clone</code></td></tr>
+      <tr><td>Tus skills</td><td>Cualquier carpeta tuya, por ejemplo <code>~/code/agents/plugins/</code></td><td>Tú. <strong>No las copies a mano a ningún otro sitio</strong></td></tr>
+      <tr><td>Enlaces para Claude Code, Cursor y opencode</td><td><code>~/.claude/skills/&lt;skill&gt;</code></td><td><code>specboot install</code></td></tr>
+      <tr><td>Enlaces para Codex y Cursor</td><td><code>~/.agents/skills/&lt;skill&gt;</code></td><td><code>specboot install</code></td></tr>
+      <tr><td>Regla global de Claude Code</td><td><code>~/.claude/CLAUDE.md</code></td><td><code>specboot install</code></td></tr>
+      <tr><td>Regla global de Codex</td><td><code>~/.codex/AGENTS.md</code></td><td><code>specboot install</code></td></tr>
+      <tr><td>Regla global de opencode</td><td><code>~/.config/opencode/AGENTS.md</code></td><td><code>specboot install</code></td></tr>
+      <tr><td>Regla global de Cursor</td><td>Settings → Rules → User Rules</td><td>Tú, pegando el texto que muestra <code>install</code></td></tr>
+      <tr><td>Datos del arnés</td><td><code>~/.specboot-data/</code></td><td>El arnés</td></tr>
+      <tr><td>Store privado de un cliente</td><td><code>~/.specboot-data/stores/&lt;cliente&gt;/</code></td><td><code>specboot init</code></td></tr>
+      <tr><td>Specs y estándares</td><td><code>&lt;proyecto&gt;/openspec</code> → enlace al store</td><td><code>specboot init</code></td></tr>
+      <tr><td>Planificación y arquitectura</td><td><code>&lt;proyecto&gt;/docs/</code>, carpeta real ignorada por git</td><td><code>specboot init</code> (ubicación <code>local</code> por defecto)</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- 1b -->
+<section class="section-card" id="carpeta-skills" style="--c:var(--accent-6)">
+  <div class="section-header"><span class="num">01b</span>🧩 Carpeta de skills válida<span class="chev">▼</span></div>
+  <div class="section-content">
+    <p class="note">Cualquier profundidad sirve; se detecta cada <code>SKILL.md</code>.</p>
+    <div class="code"><span class="lang">tree</span><pre><span class="fn">~/code/agents/plugins/</span>
+<span class="op">├──</span> python-dev/skills/fastapi-templates/<span class="ty">SKILL.md</span>
+<span class="op">├──</span> react-dev-suite/skills/react-architecture/<span class="ty">SKILL.md</span>
+<span class="op">└──</span> ai-dev/skills/langgraph-core/<span class="ty">SKILL.md</span></pre><button class="copy" type="button">Copiar</button></div>
+    <div class="tip">⚡ Cada <code>SKILL.md</code> necesita <code>name:</code> y <code>description:</code> en su encabezado.</div>
+    <div class="warn">⚠️ De un plugin solo se usan las skills; los subagentes, comandos y hooks son propios de Claude Code.</div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="section-card" id="instalacion" style="--c:var(--accent-2)">
+  <div class="section-header"><span class="num">02</span>📦 Instalación <span class="badge">una vez por máquina</span><span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="code"><span class="lang">bash</span><pre><span class="cm"># 1. Requisitos</span>
+<span class="fn">node</span> <span class="kw">--version</span>                 <span class="cm"># 20.19 o superior</span>
+<span class="fn">npm</span> install <span class="kw">-g</span> <span class="st">@fission-ai/openspec@latest</span>
+
+<span class="cm"># 2. El arnés</span>
+<span class="fn">git</span> clone <span class="st">&lt;url-del-arnés&gt;</span> ~/.specboot
+<span class="fn">cd</span> ~/.specboot <span class="op">&amp;&amp;</span> <span class="fn">npm</span> link     <span class="cm"># deja disponible `specboot`</span>
+
+<span class="cm"># 3. Tus skills</span>
+<span class="fn">specboot</span> source add ~/code/agents/plugins
+<span class="fn">specboot</span> source list
+
+<span class="cm"># 4. Enlazar todo para los cuatro agentes</span>
+<span class="fn">specboot</span> install
+
+<span class="cm"># 5. Verificar</span>
+<span class="fn">specboot</span> doctor</pre><button class="copy" type="button">Copiar</button></div>
+    <p class="note">Después, en Cursor: <strong>Settings → Rules → User Rules</strong>, y pega el texto que <code>specboot install</code> mostró al final.</p>
+    <div class="tip">⚡ Repite <code>specboot install</code> cada vez que actualices OpenSpec, el arnés o tus skills.</div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="section-card span-2" id="greenfield" style="--c:var(--accent-3)">
+  <div class="section-header"><span class="num">03</span>🌱 Flujo greenfield <span class="badge">proyecto nuevo</span><span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="code"><span class="lang">bash</span><pre><span class="cm"># 1. Repositorio vacío del cliente</span>
+<span class="fn">mkdir</span> mi-proyecto <span class="op">&amp;&amp;</span> <span class="fn">cd</span> mi-proyecto <span class="op">&amp;&amp;</span> <span class="fn">git</span> init
+<span class="fn">git</span> commit <span class="kw">--allow-empty</span> <span class="kw">-m</span> <span class="st">"chore: init"</span>
+
+<span class="cm"># 2. Iniciar con un preset de frentes</span>
+<span class="fn">specboot</span> init <span class="st">&lt;cliente&gt;</span> \
+  <span class="kw">--fronts</span> ~/.specboot/presets/fronts.fastapi-react.json \
+  <span class="kw">--remote</span> <span class="st">&lt;url-git-privada-de-specs&gt;</span>
+
+<span class="cm"># 3. Registrar tu documento de arquitectura (opcional, manda sobre las skills)</span>
+<span class="fn">specboot</span> doc add ~/ruta/arquitectura.md
+<span class="fn">specboot</span> doc add ~/ruta/backend.md <span class="kw">--front</span> backend
+
+<span class="cm"># 4. Comprobar</span>
+<span class="fn">specboot</span> doctor</pre><button class="copy" type="button">Copiar</button></div>
+    <div class="sub">Luego, con el agente</div>
+    <div class="tbl"><table>
+      <tr><th>#</th><th>Qué le pides al agente</th><th>Resultado</th></tr>
+      <tr><td class="step">0</td><td>«Ejecuta la skill <code>specboot-plan</code>»</td><td>Ideación, PRD, historias y backlog en <code>docs/planning/</code></td></tr>
+      <tr><td class="step">1</td><td>«Ejecuta la skill <code>specboot-prescribe</code>»</td><td>Lee overrides, documentos y skills base; te pregunta solo lo que ningún documento cierra; escribe <code>openspec/standards/</code></td></tr>
+      <tr><td class="step">2</td><td>Revisas y corriges lo marcado <code>[assumed]</code></td><td>Pones <code>status: reviewed</code> en cada documento</td></tr>
+      <tr><td class="step">3</td><td>«Propón el cambio del esqueleto del proyecto»</td><td>Cambio de OpenSpec con carpetas, linter, pruebas y CI</td></tr>
+      <tr><td class="step">4</td><td>«Aplica el cambio»</td><td>Código del esqueleto</td></tr>
+      <tr><td class="step">5</td><td><code>specboot check</code></td><td>Todos los checks activos pasan</td></tr>
+      <tr><td class="step">6</td><td>Commit del esqueleto en el repositorio del cliente</td><td></td></tr>
+      <tr><td class="step">7</td><td><strong>Traspaso:</strong> «Ejecuta la skill <code>specboot-map</code>» y después <code>specboot mode brownfield</code></td><td>Lo prescrito se verifica contra el código</td></tr>
+      <tr><td class="step">8</td><td><code>specboot sync -m "standards: verify, switch to brownfield"</code></td><td>Store versionado</td></tr>
+    </table></div>
+    <div class="warn">⚠️ <code>specboot map</code> y <code>specboot doctor</code> avisan «handoff due» cuando toca el paso 7. No empieces otro cambio antes.</div>
+  </div>
+</section>
+
+<!-- 3b -->
+<section class="section-card" id="presets" style="--c:var(--accent-5)">
+  <div class="section-header"><span class="num">03b</span>🎛️ Presets <span class="chev">▼</span></div>
+  <div class="section-content">
+    <p class="note">En <code>~/.specboot/presets/</code>:</p>
+    <div class="tbl"><table>
+      <tr><th>Archivo</th><th>Para</th></tr>
+      <tr><td><code>fronts.fastapi-react.json</code></td><td>FastAPI + React</td></tr>
+      <tr><td><code>fronts.fastapi-react-agentic.json</code></td><td>Igual, con LangGraph dentro del backend como <code>topics</code></td></tr>
+      <tr><td><code>fronts.springboot-angular.json</code></td><td>Spring Boot + Angular</td></tr>
+      <tr><td><code>fronts.all-fronts.example.json</code></td><td>Ejemplo con backend, frontend, mobile, ai, ml y data-science</td></tr>
+    </table></div>
+    <div class="tip">⚡ Para usar uno por defecto: cópialo a <code>~/.specboot-data/fronts.default.json</code>.</div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="section-card span-2" id="brownfield" style="--c:var(--accent-4)">
+  <div class="section-header"><span class="num">04</span>🏗️ Flujo brownfield <span class="badge">proyecto existente</span><span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="code"><span class="lang">bash</span><pre><span class="fn">cd</span> proyecto-existente
+
+<span class="cm"># 1. Iniciar (detecta solo que hay código)</span>
+<span class="fn">specboot</span> init <span class="st">&lt;cliente&gt;</span> <span class="kw">--remote</span> <span class="st">&lt;url-git-privada-de-specs&gt;</span>
+
+<span class="cm"># 2. docs/ queda local e ignorada por defecto. Solo si el cliente debe verla:</span>
+<span class="fn">specboot</span> docs client
+
+<span class="cm"># 3. Opcional: documento de arquitectura objetivo y frentes</span>
+<span class="fn">specboot</span> doc add ~/ruta/arquitectura.md
+<span class="cm">#   edita openspec/standards/fronts.json si quieres skills por frente</span>
+
+<span class="cm"># 4. Comprobar</span>
+<span class="fn">specboot</span> doctor
+<span class="fn">specboot</span> check <span class="kw">--list</span>   <span class="cm"># comandos de lint y pruebas que encontró en el proyecto</span></pre><button class="copy" type="button">Copiar</button></div>
+    <div class="sub">Luego, con el agente</div>
+    <div class="tbl"><table>
+      <tr><th>#</th><th>Qué le pides al agente</th><th>Resultado</th></tr>
+      <tr><td class="step">1</td><td>«Ejecuta la skill <code>specboot-map</code>»</td><td>Lee reglas, configuración y código; escribe <code>openspec/standards/</code> con evidencia por regla</td></tr>
+      <tr><td class="step">2</td><td>Revisas lo marcado <code>[assumed]</code> y las desviaciones frente a tu documento</td><td>Pones <code>status: reviewed</code></td></tr>
+      <tr><td class="step">3</td><td><code>specboot check</code></td><td>Línea base: anota en los estándares qué fallaba antes de tocar nada</td></tr>
+      <tr><td class="step">4</td><td><code>specboot sync -m "standards: map project"</code></td><td>Store versionado</td></tr>
+    </table></div>
+    <div class="tip">⚡ En un proyecto existente el código manda. Tu documento describe el objetivo; las contradicciones se reportan y tú decides.</div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="section-card" id="autoridad" style="--c:var(--accent-11)">
+  <div class="section-header"><span class="num">11</span>⚖️ Orden de autoridad<span class="chev">▼</span></div>
+  <div class="section-content">
+    <ol class="auth">
+      <li>Reglas de agentes que el cliente ya versiona.</li>
+      <li>Tus documentos de arquitectura, corregidos por <code>overrides.md</code>.</li>
+      <li><code>decisions.md</code>.</li>
+      <li>El código (existente) o las skills base (nuevo).</li>
+      <li>Skills genéricas.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="section-card span-2" id="ciclo" style="--c:var(--accent-8)">
+  <div class="section-header"><span class="num">05</span>🔁 Ciclo de cada cambio <span class="badge">ambos flujos</span><span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="flow"><span>producto, épica o funcionalidad grande</span><i>→</i><span><code>specboot-plan</code></span><i>·</i><span>una historia</span><i>→</i><span><code>enrich-us</code></span><i>·</i><span>un cambio pequeño</span><i>→</i><span>directo</span></div>
+    <div class="tbl"><table>
+      <tr><th>Paso</th><th>Skill o comando</th></tr>
+      <tr><td>Afinar la historia (opcional)</td><td><code>enrich-us</code></td></tr>
+      <tr><td>Proponer</td><td><code>openspec-propose</code></td></tr>
+      <tr><td>Implementar</td><td><code>openspec-apply-change</code></td></tr>
+      <tr><td>Verificar</td><td><code>specboot check</code></td></tr>
+      <tr><td>Revisar, en una sesión nueva</td><td><code>adversarial-review</code></td></tr>
+      <tr><td>Refrescar estándares si cambiaron carpetas, rutas, nombres o idioma</td><td><code>specboot-map</code>, más filas en <code>overrides.md</code></td></tr>
+      <tr><td>Archivar</td><td><code>openspec-archive-change</code></td></tr>
+      <tr><td>Versionar specs y traer los del equipo</td><td><code>specboot sync -m "..."</code></td></tr>
+      <tr><td>Commit del código</td><td><code>git add &lt;archivos&gt;</code> y <code>git commit</code>, nunca <code>git add -A</code></td></tr>
+    </table></div>
+    <p class="note">Cómo invocar una skill: <code>/nombre</code> en Claude Code, Cursor y opencode; <code>$nombre</code> en Codex; o pídelo en lenguaje natural.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="section-card" id="equipo" style="--c:var(--accent-10)">
+  <div class="section-header"><span class="num">10</span>👥 Compartir con el equipo<span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="sub">Tú, una vez</div>
+    <div class="code"><span class="lang">bash</span><pre><span class="fn">git</span> <span class="kw">-C</span> ~/.specboot-data/stores/<span class="st">&lt;cliente&gt;</span> \
+  remote add origin <span class="st">&lt;url-privada&gt;</span>
+<span class="fn">specboot</span> sync</pre><button class="copy" type="button">Copiar</button></div>
+    <div class="sub">Cada compañero, una vez</div>
+    <p class="note">Instala el arnés, clona tu repositorio de skills, <code>specboot source add</code> e <code>install</code>, y en su clon del repositorio del cliente:</p>
+    <div class="code"><span class="lang">bash</span><pre><span class="fn">specboot</span> init <span class="st">&lt;cliente&gt;</span> <span class="kw">--remote</span> <span class="st">&lt;url-privada&gt;</span></pre><button class="copy" type="button">Copiar</button></div>
+    <div class="tip">⚡ Día a día: <code>specboot pull</code> al empezar, <code>specboot sync -m "..."</code> al terminar. <code>doctor</code> avisa si vas por detrás o si tus skills no están en el commit del proyecto.</div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="section-card span-2" id="fronts" style="--c:var(--accent-7)">
+  <div class="section-header"><span class="num">06</span>🧱 fronts.json de referencia<span class="chev">▼</span></div>
+  <div class="section-content">
+    <p class="note">Ruta: <code>&lt;proyecto&gt;/openspec/standards/fronts.json</code></p>
+    <div class="code"><span class="lang">json</span><pre>{
+  <span class="ty">"mode"</span>: <span class="st">"greenfield"</span>,
+  <span class="ty">"docs"</span>: { <span class="ty">"placement"</span>: <span class="st">"local"</span> },
+  <span class="ty">"planning"</span>: {
+    <span class="ty">"skills"</span>: [<span class="st">"product-ideation-brainstorm"</span>, <span class="st">"breakdown-feature-prd"</span>, <span class="st">"project-manager"</span>],
+    <span class="ty">"output"</span>: <span class="st">"docs/planning"</span>
+  },
+  <span class="ty">"fronts"</span>: {
+    <span class="ty">"backend"</span>: {
+      <span class="ty">"path"</span>: <span class="st">"backend"</span>,
+      <span class="ty">"core"</span>: [<span class="st">"python-project-structure"</span>, <span class="st">"fastapi-templates"</span>, <span class="st">"python-code-style"</span>, <span class="st">"python-testing-patterns"</span>],
+      <span class="ty">"topics"</span>: [<span class="st">"python-observability"</span>, <span class="st">"langgraph-fundamentals"</span>, <span class="st">"rag-implementation"</span>],
+      <span class="ty">"decisions"</span>: { <span class="ty">"architecture"</span>: <span class="st">"monolito modular"</span> },
+      <span class="ty">"checks"</span>: [<span class="st">"uv run ruff check ."</span>, <span class="st">"uv run mypy ."</span>, <span class="st">"uv run pytest"</span>]
+    },
+    <span class="ty">"frontend"</span>: {
+      <span class="ty">"path"</span>: <span class="st">"frontend"</span>,
+      <span class="ty">"core"</span>: [<span class="st">"react-architecture"</span>, <span class="st">"react-core"</span>, <span class="st">"react-testing"</span>],
+      <span class="ty">"topics"</span>: [<span class="st">"react-state"</span>, <span class="st">"react-forms"</span>],
+      <span class="ty">"decisions"</span>: { <span class="ty">"architecture"</span>: <span class="st">"Screaming (feature-first)"</span> },
+      <span class="ty">"checks"</span>: [<span class="st">"npm run lint"</span>, <span class="st">"npm run typecheck"</span>, <span class="st">"npm run test -- --run"</span>]
+    }
+  }
+}</pre><button class="copy" type="button">Copiar</button></div>
+    <div class="tbl"><table>
+      <tr><th>Campo</th><th>Regla</th></tr>
+      <tr><td><code>core</code></td><td>3 a 5 skills que definen estructura, estilo y pruebas. Usa el <code>name</code> de la skill, no el de su carpeta</td></tr>
+      <tr><td><code>topics</code></td><td>Skills que se cargan solo cuando la tarea las necesita</td></tr>
+      <tr><td><code>decisions</code></td><td>Lo ya decidido; el agente no lo vuelve a preguntar</td></tr>
+      <tr><td><code>checks</code></td><td>Escritos como se ejecutan de verdad (<code>uv run ...</code>, <code>pnpm run ...</code>)</td></tr>
+      <tr><td><code>planning</code></td><td>Skills del plugin <code>plan</code>. Las añade <code>specboot map</code> en cuanto están instaladas; escribe tu propia lista para fijarla, o <code>{"disabled": true}</code> para apagarla</td></tr>
+    </table></div>
+    <div class="tip">⚡ Después de editarlo: <code>specboot map</code>.</div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="section-card" id="standards" style="--c:var(--accent-6)">
+  <div class="section-header"><span class="num">07</span>🗂️ Qué hay en openspec/standards/<span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="tbl"><table>
+      <tr><th>Archivo</th><th>Editas tú</th><th>Notas</th></tr>
+      <tr><td><code>fronts.json</code></td><td>Sí</td><td>Frentes, modo, ubicación de <code>docs/</code></td></tr>
+      <tr><td><code>checks.json</code></td><td>Solo para añadir comandos propios o desactivar con <code>"disabled": true</code></td><td>Los de los frentes se editan en <code>fronts.json</code></td></tr>
+      <tr><td><code>overrides.md</code></td><td>Sí</td><td>«Término del documento → identificador a usar»</td></tr>
+      <tr><td><code>decisions.md</code></td><td>Sí</td><td>Decisiones cerradas y elementos aplazados</td></tr>
+      <tr><td><code>*-standards.md</code>, <code>development-guide.md</code>, <code>data-model.md</code>, <code>api-spec.md</code></td><td>Revisas y pones <code>status: reviewed</code></td><td>Los escribe el agente</td></tr>
+      <tr><td><code>skill-gaps.md</code></td><td>No</td><td>Lo que tus skills no cubrieron</td></tr>
+      <tr><td><code>project-facts.md</code>, <code>fronts.lock.json</code></td><td>No</td><td>Se regeneran con <code>specboot map</code></td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="section-card span-2" id="comandos" style="--c:var(--accent-1)">
+  <div class="section-header"><span class="num">08</span>⌨️ Comandos<span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="tbl"><table>
+      <tr><th>Comando</th><th>Para qué</th></tr>
+      <tr><td><code>specboot doctor [--strict]</code></td><td>Qué falta o está mal, con el comando que lo arregla</td></tr>
+      <tr><td><code>specboot source add &lt;carpeta&gt;</code></td><td>Registrar tus skills</td></tr>
+      <tr><td><code>specboot install</code></td><td>Enlazar skills y regla global</td></tr>
+      <tr><td><code>specboot init &lt;cliente&gt; [opciones]</code></td><td>Preparar un proyecto</td></tr>
+      <tr><td><code>specboot docs local|client|store</code></td><td>Dónde vive <code>docs/</code></td></tr>
+      <tr><td><code>specboot doc add &lt;archivo&gt; [--front &lt;f&gt;]</code></td><td>Registrar un documento de arquitectura</td></tr>
+      <tr><td><code>specboot map [--accept]</code></td><td>Regenerar inventario y sincronizar checks</td></tr>
+      <tr><td><code>specboot check [--list] [--strict]</code></td><td>Ejecutar o listar los checks</td></tr>
+      <tr><td><code>specboot mode brownfield</code></td><td>Cerrar la fase de proyecto nuevo</td></tr>
+      <tr><td><code>specboot link</code></td><td>Recrear enlaces en un worktree nuevo</td></tr>
+      <tr><td><code>specboot sync -m "..."</code></td><td>Confirmar, traer lo del equipo y subir</td></tr>
+      <tr><td><code>specboot pull</code></td><td>Traer lo del equipo sin subir</td></tr>
+    </table></div>
+    <p class="note">Opciones de <code>init</code>: <code>--remote &lt;url&gt;</code>, <code>--fronts &lt;archivo&gt;</code>, <code>--new</code>, <code>--existing</code>, <code>--docs local|client|store</code>, <code>--gitignore</code>.</p>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="section-card span-3" id="problemas" style="--c:var(--accent-9)">
+  <div class="section-header"><span class="num">09</span>🩺 Problemas frecuentes<span class="chev">▼</span></div>
+  <div class="section-content">
+    <div class="tbl"><table>
+      <tr><th>Síntoma</th><th>Causa</th><th>Arreglo</th></tr>
+      <tr><td>«skills declared in fronts.json are not installed»</td><td>Falta registrar tu carpeta de skills</td><td>Ejecuta la línea <code>fix:</code> que aparece debajo</td></tr>
+      <tr><td>«planning skills not installed»</td><td>El plugin <code>plan</code> no está registrado, o el proyecto es anterior a la v0.6</td><td>Ejecuta la línea <code>fix:</code> que aparece debajo; <code>specboot map</code> las añade al proyecto</td></tr>
+      <tr><td>El agente no ve una skill</td><td>No se enlazó, o le falta <code>name:</code></td><td><code>specboot install</code> y revisa los avisos</td></tr>
+      <tr><td>«handoff due»</td><td>Ya hay código y el proyecto sigue en greenfield</td><td>Skill <code>specboot-map</code>, luego <code>specboot mode brownfield</code></td></tr>
+      <tr><td><code>check</code> dice que no verificó nada</td><td>Las carpetas de los frentes aún no existen</td><td>Normal antes del esqueleto</td></tr>
+      <tr><td>Un check descubierto aparece <code>off</code></td><td>Ya hay checks para esa carpeta</td><td>Pon <code>"disabled": false</code> en <code>checks.json</code> si lo quieres</td></tr>
+      <tr><td>«base skill changed» o «document changed»</td><td>Editaste una skill o un documento después de escribir los estándares</td><td>Actualiza los estándares y ejecuta <code>specboot map --accept</code></td></tr>
+      <tr><td>Falta <code>openspec/</code> en un worktree</td><td>Los enlaces no se versionan</td><td><code>specboot link</code></td></tr>
+      <tr><td>«commit blocked»</td><td>Intentaste añadir un archivo privado</td><td><code>git restore --staged &lt;ruta&gt;</code></td></tr>
+      <tr><td>«store has no remote»</td><td>Las specs solo están en tu máquina</td><td><code>git -C ~/.specboot-data/stores/&lt;cliente&gt; remote add origin &lt;url&gt;</code> y <code>specboot sync</code></td></tr>
+      <tr><td>«store is N commits behind the team»</td><td>Un compañero subió cambios</td><td><code>specboot pull</code></td></tr>
+      <tr><td>«your specs and the team's changed the same lines»</td><td>Conflicto real en el store</td><td>Sigue las tres líneas que imprime; no se perdió nada</td></tr>
+      <tr><td>«skills repository X is at ... but the project uses ...»</td><td>Tienes otra versión de las skills</td><td>El <code>git checkout</code> que imprime, o <code>specboot map --accept</code></td></tr>
+      <tr><td>Un compañero clonó y ve <code>openspec/</code> sin ignorar</td><td>El exclude es local a tu clon</td><td><code>specboot init &lt;cliente&gt; --gitignore</code> y commit del <code>.gitignore</code></td></tr>
+      <tr><td>El hook no se instaló</td><td>El repositorio usa <code>core.hooksPath</code> (Husky)</td><td>Llama a <code>pre-commit.specboot</code> desde tu hook</td></tr>
+    </table></div>
+  </div>
+</section>
+
+</main>
+<p id="empty" class="hidden">Nada coincide con la búsqueda.</p>
+<footer>specboot v0.6.1 · Guía rápida de instalación y uso</footer>
+
+<script>
+(function(){
+  var cards=[].slice.call(document.querySelectorAll('.section-card'));
+  var nav=document.getElementById('nav');
+  cards.slice().sort(function(a,b){return a.querySelector('.num').textContent.localeCompare(b.querySelector('.num').textContent,undefined,{numeric:true});}).forEach(function(c){
+    var a=document.createElement('a');a.href='#'+c.id;
+    var h=c.querySelector('.section-header').cloneNode(true);
+    [].forEach.call(h.querySelectorAll('.badge,.chev'),function(x){x.remove();});
+    var n=h.querySelector('.num');var num=n.textContent;n.remove();a.textContent=num+'  '+h.textContent.replace(/\s+/g,' ').trim();
+    a.style.setProperty('--c',getComputedStyle(c).getPropertyValue('--c'));
+    a.addEventListener('click',function(){c.classList.remove('collapsed');});
+    nav.appendChild(a);
+  });
+  cards.forEach(function(c){c.querySelector('.section-header').addEventListener('click',function(){c.classList.toggle('collapsed');});});
+  var toggle=document.getElementById('toggle');
+  toggle.addEventListener('click',function(){
+    var collapse=toggle.textContent.indexOf('Colapsar')===0;
+    cards.forEach(function(c){c.classList.toggle('collapsed',collapse);});
+    toggle.textContent=collapse?'Expandir todo':'Colapsar todo';
+  });
+  [].forEach.call(document.querySelectorAll('.copy'),function(b){
+    b.addEventListener('click',function(){
+      var t=b.parentNode.querySelector('pre').innerText;
+      try{navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado';setTimeout(function(){b.textContent='Copiar';},1200);},function(){b.textContent='No disponible';});}catch(e){b.textContent='No disponible';}
+    });
+  });
+  var q=document.getElementById('q'),empty=document.getElementById('empty');
+  q.addEventListener('input',function(){
+    var v=q.value.trim().toLowerCase(),shown=0;
+    cards.forEach(function(c){
+      var hit=!v||c.textContent.toLowerCase().indexOf(v)!==-1;
+      c.classList.toggle('hidden',!hit);
+      if(hit){shown++;if(v)c.classList.remove('collapsed');}
+      // Inside a matching card, keep only the table rows that match (headers always stay).
+      var rows=[].filter.call(c.querySelectorAll('tr'),function(r){return !r.querySelector('th');});
+      var headerHit=c.querySelector('.section-header').textContent.toLowerCase().indexOf(v)!==-1;
+      var anyRow=rows.some(function(r){return r.textContent.toLowerCase().indexOf(v)!==-1;});
+      rows.forEach(function(r){
+        r.classList.toggle('hidden',!!v&&hit&&!headerHit&&anyRow&&r.textContent.toLowerCase().indexOf(v)===-1);
+      });
+    });
+    empty.classList.toggle('hidden',shown>0);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "fronts": {
+    "backend": {
+      "path": "backend",
+      "core": ["spring-boot-project-creator", "hexagonal-architecture-layers-java", "spring-boot-rest-api-standards", "spring-boot-test-patterns", "java-quality"],
+      "topics": ["spring-data-jpa", "spring-security", "spring-validation", "springdoc-openapi", "spring-boot-crud-patterns"],
+      "decisions": { "architecture": "Hexagonal (domain, application, infrastructure). Change to layered CRUD here if the project is simple." },
+      "checks": ["./mvnw -q verify"]
+    },
+    "frontend": {
+      "path": "frontend",
+      "core": ["angular-developer", "angular-new-app"],
+      "topics": ["angular-design-system", "design-system-patterns", "accessibility-compliance"],
+      "decisions": {},
+      "checks": ["npx ng lint", "npx ng test --watch=false", "npx ng build"]
+    }
+  }
+}

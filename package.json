@@ -1,0 +1,9 @@
+{
+  "name": "specboot",
+  "version": "0.6.1",
+  "description": "Global OpenSpec harness for Claude Code, Cursor, Codex and opencode that keeps client repositories clean",
+  "type": "module",
+  "bin": { "specboot": "bin/specboot.mjs" },
+  "engines": { "node": ">=20.19.0" },
+  "license": "MIT"
+}
