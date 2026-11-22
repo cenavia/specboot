@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.3
+
+Regla de Cursor sin pasos manuales. Para actualizar: `git fetch --tags && git checkout v0.7.3 && npm link && specboot install`, y en cada proyecto `specboot link`.
+
+- **Regla de Cursor automática por proyecto.** Cursor guarda las User Rules en su configuración (sincronizada con la cuenta), no en un archivo, así que `install` solo podía pedir que se pegaran a mano. Ahora `init`, `link` y `map` escriben la regla del arnés en `.cursor/rules/specboot.mdc` con `alwaysApply: true`, una regla de proyecto documentada por Cursor. Vive bajo `.cursor/`, que el exclude y el hook `pre-commit` ya mantienen fuera del repositorio del cliente. Se reescribe cuando cambia la regla del arnés; un archivo con ese nombre que no lleve la marca de specboot no se toca.
+- **`doctor`** avisa si la regla de Cursor falta, está desactualizada o el archivo no es de specboot.
+- **`install`** ya no pide pegar nada en Cursor; sigue mostrando el texto solo para quien quiera la regla también fuera de los proyectos con specboot.
+- Se descartó escribir en `~/.cursor/rules/`: Cursor no documenta que cargue reglas desde ahí.
+
 ## 0.7.2
 
 Compatibilidad con OpenSpec 2.x y protección real de proyectos preparados con un arnés anterior. Para actualizar: `git fetch --tags && git checkout v0.7.2 && npm link && specboot install`, y en cada proyecto `specboot link` (o `specboot map`).
