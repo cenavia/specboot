@@ -31,26 +31,23 @@ If the Caveman CLI is installed (`npx @caveman-ai/cli@latest`), follow its rocks
 '@
 
 if ((Eff-Have 'npx') -and (Eff-Have 'node')) {
-  try {
-    $major = [int](& node -p "process.versions.node.split('.')[0]")
-  } catch {
-    $major = 0
-  }
-  if ($major -ge 22) {
-    try {
-      & npx --yes @caveman-ai/cli@latest 2>$null | Out-Null
+  $major = 0
+  $ver = (& node -p "process.versions.node" 2>$null | Select-Object -First 1)
+  if ($ver -match '^(\d+)\.(\d+)') { $major = [int]$Matches[1]; $minor = [int]$Matches[2] } else { $minor = 0 }
+  if ($major -gt 22 -or ($major -eq 22 -and $minor -ge 13)) {
+    # stdin from NUL: an interactive prompt fails fast instead of hanging with hidden output.
+    if (Eff-RunNoInput 'npx --yes @caveman-ai/cli@latest') {
       Eff-Ok 'caveman CLI installer invoked (confirm agent wiring if prompted interactively)'
-    } catch {
-      try {
-        & npx --yes skills add JuliusBrussee/caveman -g 2>$null | Out-Null
-        Eff-Ok 'caveman upstream skill added globally via npx skills'
-      } catch {
-        Eff-Warn 'caveman CLI/skill install needs an interactive terminal — SpecBoot skill is linked; run: npx @caveman-ai/cli@latest'
-      }
+    } elseif (Eff-RunNoInput 'npx --yes skills add JuliusBrussee/caveman -g') {
+      Eff-Ok 'caveman upstream skill added globally via npx skills'
+    } else {
+      Eff-Warn 'caveman CLI/skill install needs an interactive terminal - SpecBoot skill is linked; run: npx @caveman-ai/cli@latest'
     }
   } else {
-    Eff-Warn "caveman CLI wants Node 22.13+ (found $major); SpecBoot skill still linked"
+    Eff-Warn "caveman CLI wants Node 22.13+ (found $ver); SpecBoot skill still linked"
   }
 } else {
   Eff-Warn 'npx/node missing; SpecBoot caveman skill only'
 }
+
+Eff-Exit

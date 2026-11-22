@@ -59,3 +59,5 @@ if have rtk && rtk gain >/dev/null 2>&1; then
   rtk init -g --codex --no-trust-filters || true
   rtk init -g --auto-patch --no-trust-filters --opencode || true
 fi
+
+eff_exit

@@ -51,20 +51,26 @@ Upstream: https://github.com/DietrichGebert/ponytail
 }
 
 if (Eff-Have 'claude') {
-  try {
-    & claude plugin marketplace add DietrichGebert/ponytail 2>$null | Out-Null
-    & claude plugin install ponytail@ponytail 2>$null | Out-Null
-    Eff-Ok 'Claude Code ponytail plugin install attempted'
-  } catch {
-    Eff-Warn 'Claude Code plugin install may need an interactive session'
+  if (Eff-RunQuiet 'claude' @('plugin', 'marketplace', 'add', 'DietrichGebert/ponytail')) {
+    if (Eff-RunQuiet 'claude' @('plugin', 'install', 'ponytail@ponytail')) {
+      Eff-Ok 'Claude Code ponytail plugin installed'
+    } else {
+      Eff-Warn 'Claude Code: marketplace ok; plugin install may need an interactive session - run: claude plugin install ponytail@ponytail'
+    }
+  } else {
+    Eff-Warn 'Claude Code plugin marketplace add skipped/failed (optional) - run: claude plugin marketplace add DietrichGebert/ponytail'
   }
 }
 if (Eff-Have 'codex') {
-  try {
-    & codex plugin marketplace add DietrichGebert/ponytail 2>$null | Out-Null
-    & codex plugin add ponytail@ponytail 2>$null | Out-Null
-    Eff-Ok 'Codex ponytail plugin install attempted'
-  } catch {
-    Eff-Warn 'Codex plugin install may need an interactive session'
+  if (Eff-RunQuiet 'codex' @('plugin', 'marketplace', 'add', 'DietrichGebert/ponytail')) {
+    if (Eff-RunQuiet 'codex' @('plugin', 'add', 'ponytail@ponytail')) {
+      Eff-Ok 'Codex ponytail plugin installed'
+    } else {
+      Eff-Warn 'Codex: marketplace ok; plugin add may need an interactive session - run: codex plugin add ponytail@ponytail'
+    }
+  } else {
+    Eff-Warn 'Codex plugin marketplace add skipped/failed (optional) - run: codex plugin marketplace add DietrichGebert/ponytail'
   }
 }
+
+Eff-Exit

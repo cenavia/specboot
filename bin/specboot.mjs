@@ -272,7 +272,7 @@ const sha = (file) => crypto.createHash('sha256').update(read(file)).digest('hex
 const VALID_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 function skillName(dir) {
-  const t = read(path.join(dir, 'SKILL.md'));
+  const t = read(path.join(dir, 'SKILL.md')).replace(/^\uFEFF/, '');
   if (!t.startsWith('---')) return null;
   const end = t.indexOf('\n---', 3);
   const m = t.slice(3, end === -1 ? 3 : end).match(/^name:\s*["']?(.+?)["']?\s*$/m);
@@ -1495,7 +1495,7 @@ function cmdDoctor(args = []) {
   effSkill('ponytail') ? ok('ponytail skill linked') : strict('ponytail skill missing (run: specboot install)');
   effSkill('caveman') ? ok('caveman skill linked') : warn('caveman skill missing (run: specboot install)');
   tryRun('codegraph', ['--version']) ? ok('codegraph CLI on PATH') : strict('codegraph CLI missing (run: specboot install)');
-  tryRun('rtk', ['--version']) ? ok('rtk CLI on PATH') : warn('rtk CLI missing (optional; run: specboot install)');
+  tryRun('rtk', ['gain']) !== null ? ok('rtk CLI on PATH') : warn(tryRun('rtk', ['--version']) ? 'rtk on PATH but `rtk gain` fails (another program named rtk?); run: specboot install' : 'rtk CLI missing (optional; run: specboot install)');
   tryRun('headroom', ['--version']) ? ok('headroom CLI on PATH') : warn('headroom CLI missing (optional; run: specboot install)');
   if (process.env.SPECBOOT_SKIP_EFFICIENCY === '1') warn('SPECBOOT_SKIP_EFFICIENCY=1 is set');
 

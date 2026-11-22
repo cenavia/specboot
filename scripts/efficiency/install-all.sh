@@ -17,8 +17,8 @@ run_one() {
   local script="$1"
   local rc=0
   # Subprocess so each installer has isolated state; do not abort the pack on failure.
-  if ! bash "${SCRIPT_DIR}/${script}"; then
-    rc=$?
+  bash "${SCRIPT_DIR}/${script}" || rc=$?
+  if [[ "${rc}" -ne 0 ]]; then
     FAILED=1
     eff_warn "${script} exited ${rc}"
   fi

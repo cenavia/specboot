@@ -49,3 +49,5 @@ if have codegraph; then
   fi
   eff_warn "per project: cd <repo> && codegraph init  (keep .codegraph/ out of client git)"
 fi
+
+eff_exit

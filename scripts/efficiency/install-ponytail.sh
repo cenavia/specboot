@@ -67,3 +67,5 @@ if have codex; then
     eff_warn "Codex plugin marketplace add skipped/failed (optional)"
   fi
 fi
+
+eff_exit
