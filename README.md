@@ -7,7 +7,7 @@ Arnés global para trabajar con OpenSpec en Claude Code, Cursor, Codex y opencod
 - El repositorio del cliente solo recibe código. Un `exclude` local y un hook `pre-commit` lo protegen.
 - Sirve para proyectos existentes (los estándares se observan del código) y nuevos (se prescriben desde tus documentos y skills).
 
-Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Este README explica cómo funciona.
+Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboarding del equipo en un proyecto **ya existente** (dónde empezar: máquina vs repo cliente): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**. Este README explica cómo funciona. Para pasar un proyecto de OpenSpec 1.x a 2.x con perfil extendido: **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
 
 ## Requisitos
 
@@ -206,7 +206,7 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 
 | Comando | Qué hace |
 |---------|----------|
-| `specboot install` / `uninstall` | Enlaza o retira las skills y la regla global |
+| `specboot install` / `uninstall` | Enlaza skills, regla global y **siempre** el efficiency pack (scripts bash: ponytail, caveman, codegraph, rtk, headroom). Omitir pack: `SPECBOOT_SKIP_EFFICIENCY=1` |
 | `specboot source add <ruta>` / `remove <ruta>` / `list` | Registra una carpeta con tus skills |
 | `specboot init <cliente> [--remote <url>] [--fronts <archivo>] [--new\|--existing] [--docs local\|client\|store] [--gitignore]` | Prepara el proyecto actual |
 | `specboot link` | Recrea los enlaces en un worktree nuevo |
@@ -229,20 +229,31 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 | `specboot-prescribe` | Proyecto nuevo: escribir los estándares |
 | `specboot-map` | Proyecto existente: mapear; proyecto nuevo con código: verificar |
 | `enrich-us` | Afinar una historia vaga |
-| `adversarial-review` | Revisión antes de archivar, en una sesión nueva |
-| `openspec-*` | Generadas por `specboot install` con tu versión de OpenSpec |
+| `work-unit-commits` | Partir la implementación en commits revisables (tests/docs con el comportamiento) |
+| `chained-pr` | PR que puede pasar de ~400 líneas, o PRs apilados |
+| `branch-pr` | Abrir o preparar el PR según la política del repositorio destino |
+| `adversarial-review` | Red-team del change (sesión fresca); parte del quality gate |
+| `judgment-day` | Juicio final (doble review); parte del quality gate antes de archivar |
+| `openspec-*` | Generadas por `specboot install` según el perfil OpenSpec (`core` = 6, extendido = 12) |
+
+Cada comando OpenSpec dispara también las skills de proceso del arnés (inventario + tablas must/when en `specboot-start` §§5a–5c). El quality gate es: `openspec-verify-change` (solo extendido) → `specboot check` → `adversarial-review` → `mutation-testing`? → `code-auditing`? → `judgment-day`.
 
 ## Estructura del repositorio
 
 ```
-bin/specboot.mjs        CLI sin dependencias
-skills/                 skills de flujo del arnés
-templates/standards/    plantillas de los documentos de estándares
-presets/                ejemplos de fronts.json
-CHEATSHEET.md           guía rápida de instalación y uso
-CHANGELOG.md            cambios por versión
+bin/specboot.mjs              CLI sin dependencias
+skills/                       skills de flujo del arnés
+scripts/efficiency/           pack de eficiencia (bash + PowerShell; lo corre `specboot install`)
+templates/standards/          plantillas de los documentos de estándares
+presets/                      ejemplos de fronts.json
+CHEATSHEET.md                 guía rápida de instalación y uso
+GUIA-INSTALACION-EQUIPO.md    onboarding equipo: máquina vs proyecto existente
+UPGRADE-OPENSPEC-2.md         OpenSpec 1.x → 2.x + perfil extendido SpecBoot
+CHANGELOG.md                  cambios por versión
 ```
 
 ## Créditos
 
 `enrich-us` y `adversarial-review` están adaptadas de [lidr-specboot](https://lidr.co/ia-devs) (LIDR.co, licencia MIT).
+
+`work-unit-commits`, `chained-pr`, `branch-pr` y `judgment-day` son skills portables Apache-2.0 tomadas de Gentle AI (`internal/assets/skills/`); no incluyen las variantes `gentle-ai-*` específicas de ese repositorio.

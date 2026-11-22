@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0
+
+- **Núcleo de entrega:** las skills `work-unit-commits`, `chained-pr` y `branch-pr` (portables, Apache-2.0) pasan a vivir en `skills/` del arnés y forman parte del ciclo en `specboot-start`, CHEATSHEET y README. Un `specboot install` las enlaza a todos los agentes sin un repo de skills aparte.
+- **Cableado comando → skills:** `specboot-start` define bindings core (6) y extendido (12): cada comando OpenSpec carga también las skills de proceso del arnés. Quality gate / `verify`: `openspec-verify-change` (extendido) → `specboot check` → `adversarial-review` → `judgment-day` (juicio final). Skill `judgment-day` añadida al arnés.
+- **Inventario completo del arnés alineado a OpenSpec:** §5a lista cada skill del core SpecBoot (función + si enlaza a un comando). §5b amplía must/when para `apply` (worktrees, Playwright, commits/PR/docs), quality gate (`mutation-testing`, `code-auditing`) y entradas `quick-change` / `factory`.
+- **Docs:** `UPGRADE-OPENSPEC-2.md` — pasos máquina/proyecto para OpenSpec 1.x → 2.x con perfil extendido y quality gate SpecBoot.
+- **Efficiency pack en `specboot install`:** siempre ejecuta el pack (ponytail, caveman, codegraph, rtk, headroom) salvo `SPECBOOT_SKIP_EFFICIENCY=1`. Skills en `~/.specboot-data/efficiency-skills/`. Regla global + `doctor` (sección Efficiency). Exclude `.codegraph/`.
+- **Efficiency pack multiplataforma:** macOS/Linux → `install-all.sh`; Windows → `install-all.ps1` (winget para rtk, `install.ps1` para codegraph). No requiere Git Bash en Windows.
+- **Fix:** `codegraph install -y` en el pack (antes pedía prompt y colgaba `specboot install`).
+- **Fix:** `rtk init -g --auto-patch --no-trust-filters` (antes `rtk init -g` pedía prompt y colgaba).
+- **Fix:** codegraph/rtk ya no ocultan stdio en el wire; si falla lo no-interactivo y hay TTY, piden confirmación visible y el pack avanza al confirmar.
+- **Docs:** `GUIA-INSTALACION-EQUIPO.md` — onboarding: instalar arnés en máquina primero, luego `init` en el proyecto existente.
+
 ## 0.6.1
 
 - **Corrección: las skills de planificación no quedaban integradas.** Solo `init` configuraba `planning`, así que un proyecto creado antes de la v0.6, o antes de registrar el plugin `plan`, se quedaba sin ellas y nada lo avisaba. Ahora cada `specboot map` las añade en cuanto están instaladas, `doctor` avisa si faltan con el comando exacto para registrarlas, y `project-facts.md` explica qué hacer mientras no estén. Una lista escrita a mano se respeta y `{"disabled": true}` apaga la planificación.

@@ -1,6 +1,8 @@
 # specboot: guía rápida
 
-Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield). Versión 0.6.1.
+Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield). Versión 0.7.0.
+
+Onboarding detallado del equipo (recomendación máquina → luego proyecto existente): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**.
 
 ## 1. Dónde va cada cosa
 
@@ -45,11 +47,14 @@ cd ~/.specboot && npm link                      # deja disponible el comando `sp
 specboot source add ~/code/agents/plugins       # la carpeta que contiene tus skills
 specboot source list
 
-# 4. Enlazar todo para los cuatro agentes
+# 4. Enlazar todo para los cuatro agentes (+ efficiency pack: ponytail, caveman, codegraph, rtk, headroom)
 specboot install
+# macOS/Linux → scripts bash; Windows → PowerShell (winget/npm/install.ps1; no hace falta Git Bash)
+# Saltar solo el pack: SPECBOOT_SKIP_EFFICIENCY=1 specboot install
 
 # 5. Verificar
 specboot doctor
+# Por cada repo cliente (opcional pero recomendado): codegraph init
 ```
 
 Después, en Cursor: Settings → Rules → User Rules, y pega el texto que `specboot install` mostró al final.
@@ -138,17 +143,21 @@ En un proyecto existente el código manda. Tu documento describe el objetivo; la
 
 Según el tamaño del pedido: producto, épica o funcionalidad grande → primero `specboot-plan`; una historia → `enrich-us`; un cambio pequeño → directo.
 
-| Paso | Skill o comando |
-|------|-----------------|
-| Afinar la historia (opcional) | `enrich-us` |
-| Proponer | `openspec-propose` |
-| Implementar | `openspec-apply-change` |
-| Verificar | `specboot check` |
-| Revisar, en una sesión nueva | `adversarial-review` |
-| Refrescar estándares si cambiaron carpetas, rutas, nombres o idioma | `specboot-map`, más filas en `overrides.md` |
-| Archivar | `openspec-archive-change` |
-| Versionar specs y traer los del equipo | `specboot sync -m "..."` |
-| Commit del código | `git add <archivos>` y `git commit`, nunca `git add -A` |
+| Comando OpenSpec | Skills del arnés que van con él |
+|------------------|--------------------------------|
+| `explore` | `enrich-us`? · `explain`? |
+| `propose` / `new` / `ff` | `specboot-plan`? · `enrich-us`? · `playwright-qa-scenarios` (catálogo FE)? |
+| `continue` / `update` | (solo artefactos OpenSpec) |
+| `apply` | `using-git-worktrees`? · E2E FE: `playwright-qa-scenarios`+`playwright-skill` · **must** `work-unit-commits` · `chained-pr`? · `branch-pr` · `commit`? · `update-docs`? · `show-spec-working`? |
+| `sync` | `openspec-sync-specs` (copia del arnés) |
+| **verify** / pre-**archive** | `openspec-verify-change` (solo extendido) → `specboot check` → `adversarial-review` → `mutation-testing`? → `code-auditing`? → **`judgment-day`** |
+| `archive` / `bulk-archive` | quality gate + `specboot-map`? + `specboot sync` |
+| `onboard` | `specboot-start` primero |
+| Entradas | `quick-change` / `factory` → luego el ciclo de arriba |
+
+`?` = solo si aplica la condición. Inventario completo y must/when: `specboot-start` §§5a–5c. Perfil: `openspec config get profile` / `workflows` (core=6, extendido=12).
+
+Proyecto ya en OpenSpec 1.x → 2.x extendido: ver **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
 
 Cómo invocar una skill: `/nombre` en Claude Code, Cursor y opencode; `$nombre` en Codex; o pídelo en lenguaje natural.
 

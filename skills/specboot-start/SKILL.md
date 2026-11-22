@@ -80,28 +80,107 @@ When a backlog exists in `docs/planning/backlog.md`, take work from it in priori
 
 Use the OpenSpec skills for every step. Do not improvise the artifacts.
 
-| Step | Skill or command | Notes |
-|------|------------------|-------|
-| Refine the story | `enrich-us` | Optional; use when the request is vague |
-| Explore | `openspec-explore` | Optional; use when the approach is unclear |
-| Propose | `openspec-propose` | Creates the change in `openspec/changes/` |
-| Implement | `openspec-apply-change` | Task by task, marking `tasks.md` |
-| Verify | `specboot check` | Must pass before review |
-| Review | `adversarial-review` | In a fresh session, different from the one that implemented |
-| Refresh standards | see below | Mandatory when the change altered a convention |
-| Archive | `openspec-archive-change` | Only after the review verdict allows it |
-| Version the specs | `specboot sync -m "..."` | After proposing, after implementing, after archiving. It also brings in the team's changes |
+**Binding rule:** when the user (or you) invokes an OpenSpec command / skill, also load every **harness skill** marked **must** for that command. Load **when** skills only if their condition holds. Do not run the OpenSpec skill alone when the table names SpecBoot skills.
+
+Detect the OpenSpec profile once per session:
+
+```bash
+openspec config get profile
+openspec config get workflows
+```
+
+- Profile `core` (exactly the six core workflows) → **§5b** core rows only.
+- Any other selection (`custom` / extended) → **§5b** core rows **plus** extended rows.
+
+### 5a. Harness skill inventory (what each is for)
+
+| Harness skill | Role | Binds to OpenSpec? |
+|---------------|------|--------------------|
+| `specboot-start` | Gates, standards, profile, this binding table | Session start; `onboard` |
+| `specboot-plan` | PRD → stories → backlog before any change | Before `propose` / `new` / `ff` when epic/product |
+| `specboot-prescribe` | Write standards (greenfield) | **Lifecycle** (before OpenSpec coding), not a change command |
+| `specboot-map` | Map/verify standards (brownfield / handoff / refresh) | Before first change if draft; **before `archive`** if conventions changed |
+| `enrich-us` | Turn a vague story into an implementation-ready ticket | Before `propose`/`new`/`ff`; optional on `explore` |
+| `openspec-sync-specs` | Harness copy of OpenSpec sync (wins over generated) | `sync` |
+| `using-git-worktrees` | Isolated worktree for feature work | Before/during `apply` when isolation is needed; **must** under `factory` |
+| `work-unit-commits` | Split delivery into reviewable commits | After `apply` (must) |
+| `chained-pr` | Stack PRs when ~400+ lines | After `apply` when over budget |
+| `branch-pr` | Open/prepare PR per **destination** policy | After `apply` when opening a PR |
+| `commit` | Execute commit + push + PR + Jira transitions | After `apply` when the team uses the Jira/PR packaging path (with or after `work-unit-commits`) |
+| `update-docs` | Update technical docs for what was implemented | After `apply` when docs standards require it |
+| `playwright-qa-scenarios` | E2E case catalog + suite from ACs | Catalog: with `enrich-us` if FE; suite: during `apply` E2E tasks |
+| `playwright-skill` | Playwright practice for writing/debugging E2E | With `playwright-qa-scenarios` suite / FE test tasks in `apply` |
+| `adversarial-review` | Red-team change vs proposal/specs/tasks | Quality gate (§5c); also inside `factory` before verify loops |
+| `mutation-testing` | Would tests catch a small deliberate bug? | Inside quality gate with / after `adversarial-review` when tests are in scope |
+| `judgment-day` | Juicio final — dual blind review | Quality gate (§5c) after `adversarial-review` |
+| `code-auditing` | Broad code-quality / security audit | Quality gate **when** high-risk (auth, payments, data, security) or user asks |
+| `show-spec-working` | Live demo that the change works | After `apply` or after quality gate when user asks to see it working |
+| `quick-change` | Informal ask → Jira + branch + OpenSpec change | **Entry** when no Jira and no explicit `openspec-*`; then follows §5b |
+| `factory` | Parallel worktrees running full OpenSpec pipeline | **Entry** for parallel/Jira-queue work; each unit runs §5b through quality gate |
+| `explain` | Teach concepts behind a question | Orthogonal — never blocks OpenSpec |
+| `meta-prompt` | Rewrite prompts | Orthogonal — harness/meta |
+| `writing-skills` | Author/improve skills | Orthogonal — harness/meta |
+| `sync-agent-symlinks` | Sync skill symlinks across agents | Orthogonal — after skill install changes |
+
+### 5b. Command → skills bindings
+
+#### Core OpenSpec commands (always)
+
+| OpenSpec command | OpenSpec skill | Harness skills |
+|------------------|----------------|----------------|
+| *(session start)* | — | **must:** `specboot-start` (+ `specboot doctor`). If standards empty: `specboot-prescribe` (greenfield) or `specboot-map` (brownfield). If handoff due: `specboot-map` then `specboot mode brownfield`. |
+| `explore` / `opsx explore` | `openspec-explore` | **when** vague story: `enrich-us`. **when** user needs concepts: `explain`. |
+| `propose` / `opsx propose` | `openspec-propose` | **when** epic/product: `specboot-plan` first. **when** vague story: `enrich-us` first. **when** FE behavior: `playwright-qa-scenarios` (catalog) after enrich. |
+| `apply` / `opsx apply` | `openspec-apply-change` | **must:** `ponytail` (minimal necessary diff). **when** isolation needed: `using-git-worktrees`. **when** FE E2E tasks: `playwright-qa-scenarios` (suite) + `playwright-skill`. Prefer **codegraph** if the project is indexed. **must** after code lands: `work-unit-commits`. **when** ~400+ lines: `chained-pr`. **when** opening PR: `branch-pr`. **when** Jira packaging required: `commit`. **when** docs standards require it: `update-docs`. **when** user asks demo: `show-spec-working`. |
+| `update` / `opsx update` | `openspec-update-change` | — (planning artifacts only). |
+| `sync` / `opsx sync` | `openspec-sync-specs` | Use the harness skill of that name (same intent as OpenSpec sync). |
+| `archive` / `opsx archive` | `openspec-archive-change` | **must:** quality gate §5c first. **when** conventions changed: `specboot-map` (+ overrides/decisions) before archive. **must** after: `specboot sync` (store). |
+
+Core has no `verify` command → §5c is still **mandatory before every archive**.
+
+#### Extended-only OpenSpec commands
+
+| OpenSpec command | OpenSpec skill | Harness skills |
+|------------------|----------------|----------------|
+| `new` / `opsx new` | `openspec-new-change` | Same pre-steps as `propose` (`specboot-plan` / `enrich-us` / FE catalog when applicable). |
+| `continue` / `opsx continue` | `openspec-continue-change` | — (next planning artifact only). |
+| `ff` / `opsx ff` | `openspec-ff-change` | Same pre-steps as `propose`. |
+| **`verify` / `opsx verify`** | **`openspec-verify-change`** | **must:** full quality gate §5c (named verify entry). **when** user asks demo after green gate: `show-spec-working`. |
+| `bulk-archive` / `opsx bulk-archive` | `openspec-bulk-archive-change` | **must:** §5c per change (or confirm batch scope). Then bulk archive; then `specboot sync`. |
+| `onboard` / `opsx onboard` | `openspec-onboard` | **must:** `specboot-start` first so gates/standards still apply; then follow §5b for each step of the onboarded change. |
+
+Propose paths in extended: `propose` **or** `new`→`continue`… **or** `ff`. One path per change.
+
+#### Harness entry commands (not OpenSpec, but they drive OpenSpec)
+
+| Entry | What it does | Then |
+|-------|--------------|------|
+| `quick-change` | Informal request → ticket/branch/change | Run the matching §5b path (`propose`/`apply`/… through §5c). |
+| `factory` | Parallel units in worktrees | Each unit: `using-git-worktrees` + full §5b through §5c (`adversarial-review` before verify loops as factory already requires). |
+
+### 5c. Quality gate (verify / pre-archive) — juicio final
+
+Run **in this order**. Do not archive until the gate completes:
+
+1. **`openspec-verify-change`** — only when the profile includes `verify` (extended). On core, skip and continue.
+2. **`specboot check`** — `checks.json` must pass (or report documented baseline failures).
+3. **`adversarial-review`** — fresh session (not the implementer); red-team vs proposal/specs/tasks.
+4. **`mutation-testing`** — **when** the change includes or depends on tests; strengthen survivors before proceeding.
+5. **`code-auditing`** — **when** high-risk surface (auth, payments, PII, security, irreversible data) or the user asks.
+6. **`judgment-day`** — juicio final; dual blind review; terminal `APPROVED` or `ESCALATED`. Do not archive on `ESCALATED` without an explicit human decision.
+
+Announce at the start: active profile (core/extended), and that `adversarial-review` + `judgment-day` are both required.
 
 ### Standards refresh before archive
 
 Before archiving, answer this question about the change: did it alter the folder layout, a route or public name, a naming or language rule, a library choice, or how a layer may be used?
 
-- **No**: archive.
-- **Yes**: the standards are now stale. Before archiving, update the affected standards documents (run the `specboot-map` skill, or edit the specific rules and their evidence), add a decision to `decisions.md`, and add rows to `overrides.md` for every term that now differs from an architecture document. Then archive. A change that renames modules or routes and leaves the standards describing the old names is not finished.
+- **No**: proceed with §5c then archive.
+- **Yes**: standards are stale. Run `specboot-map` (or edit rules + evidence), update `decisions.md` / `overrides.md` as needed, then §5c and archive.
 
-Before changing a module that has no spec yet under `openspec/specs/`, describe its current behavior in the proposal (what it does today, from the code and tests) so the change is written as a delta against reality.
+Before changing a module that has no spec yet under `openspec/specs/`, describe its current behavior in the proposal (from code and tests) so the change is a delta against reality.
 
-Skip OpenSpec for small, obvious changes (a one-line fix, a log, a default value) and for throwaway spikes. Say that you are skipping it and why.
+Skip OpenSpec for small, obvious changes (one-line fix, log, default) and throwaway spikes — say so. Still run `specboot check` when code changed; run §5c only when the user asks or risk is high.
 
 ## 6. Keep the client repository clean
 
@@ -115,4 +194,4 @@ These rules are not negotiable:
 
 ## Completion
 
-End each work session by stating: the change name, which tasks are done, the result of `specboot check`, the review verdict if any, whether the standards needed a refresh, and whether `specboot sync` ran.
+End each work session by stating: the change name, which tasks are done, the OpenSpec profile (core/extended), which §5b bindings ran, the result of `specboot check`, `adversarial-review` / `mutation-testing` / `code-auditing` outcomes if run, the `judgment-day` verdict (`APPROVED` / `ESCALATED` / not run), whether standards needed a refresh, and whether `specboot sync` ran.

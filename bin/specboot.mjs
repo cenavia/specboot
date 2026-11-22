@@ -23,10 +23,13 @@ const IS_WIN = process.platform === 'win32';
 
 // Paths that must never be added to a client repository.
 const EXCLUDES = [
-  '/openspec', '/.claude/', '/.cursor/', '/.codex/', '/.opencode/', '/.agents/', '/.atl/',
+  '/openspec', '/.claude/', '/.cursor/', '/.codex/', '/.opencode/', '/.agents/', '/.atl/', '/.codegraph/',
   '/CLAUDE.md', '/AGENTS.md', '/GEMINI.md', '/codex.md',
 ];
-const BLOCK_RE = String.raw`^(openspec(/|$)|\.claude/|\.cursor/|\.codex/|\.opencode/|\.agents/|\.atl/|(CLAUDE|AGENTS|GEMINI)\.md$|codex\.md$)`;
+const BLOCK_RE = String.raw`^(openspec(/|$)|\.claude/|\.cursor/|\.codex/|\.opencode/|\.agents/|\.atl/|\.codegraph/|(CLAUDE|AGENTS|GEMINI)\.md$|codex\.md$)`;
+const EFFICIENCY_SKILLS = path.join(DATA, 'efficiency-skills');
+const EFFICIENCY_INSTALL = path.join(HARNESS, 'scripts', 'efficiency', 'install-all.sh');
+const EFFICIENCY_INSTALL_PS1 = path.join(HARNESS, 'scripts', 'efficiency', 'install-all.ps1');
 
 const MARK = { start: '<!-- specboot:start -->', end: '<!-- specboot:end -->' };
 const YMARK = { start: '# >>> specboot (managed block; rewrite with `specboot detect --write`)', end: '# <<< specboot' };
@@ -315,6 +318,7 @@ function skillCatalog() {
   };
   for (const dir of findSkillDirs(path.join(HARNESS, 'skills'), 1)) add(dir, 'specboot');
   if (exists(GENERATED)) for (const dir of findSkillDirs(GENERATED, 1)) add(dir, 'openspec');
+  if (exists(EFFICIENCY_SKILLS)) for (const dir of findSkillDirs(EFFICIENCY_SKILLS, 1)) add(dir, 'efficiency');
   for (const src of listSources()) {
     if (!exists(src)) { issues.push(`skill source not found: ${src}`); continue; }
     for (const dir of findSkillDirs(src)) add(dir, path.join(path.basename(src), path.relative(src, path.dirname(dir))));
@@ -355,7 +359,14 @@ function instructionFiles() {
   ];
 }
 const GLOBAL_RULE = `## specboot
-When the project root contains an \`openspec/\` folder (it may be a symlink), load the \`specboot-start\` skill before planning or changing code, and work through OpenSpec changes. Never stage or commit \`openspec/\` or agent configuration files to the code repository.`;
+When the project root contains an \`openspec/\` folder (it may be a symlink), load the \`specboot-start\` skill before planning or changing code, and work through OpenSpec changes. Never stage or commit \`openspec/\`, \`.codegraph/\`, or agent configuration files to the code repository.
+
+### Efficiency pack (installed with \`specboot install\`)
+- Prefer **codegraph** when a project has been indexed (\`codegraph init\`): query the graph before broad file exploration on map/explore/apply.
+- On OpenSpec **apply**, load **ponytail**: smallest diff that meets tasks and standards; never cut validation, security, or required tests.
+- **rtk** / **Headroom** compress tool/CLI output on the machine when installed — use them transparently; do not duplicate both proxies for debugging.
+- **caveman** may shorten ordinary chat; never shorten \`specboot-start\` gates, \`specboot doctor\`, quality-gate evidence (\`adversarial-review\`, \`judgment-day\`, \`specboot check\`), or PR/commit bodies.
+- Skip the pack for one install with \`SPECBOOT_SKIP_EFFICIENCY=1\`.`;
 
 function generateOpenspecSkills() {
   if (tryRun(OPENSPEC, ['--version']) === null) {
@@ -386,10 +397,48 @@ function generateOpenspecSkills() {
   }
 }
 
+function runEfficiencyPack() {
+  if (process.env.SPECBOOT_SKIP_EFFICIENCY === '1') {
+    warn('efficiency pack skipped (SPECBOOT_SKIP_EFFICIENCY=1)');
+    return;
+  }
+  log(`efficiency pack (always on install; platform=${process.platform})`);
+  mkdirp(EFFICIENCY_SKILLS);
+  const env = { ...process.env, SPECBOOT_DATA: DATA, HARNESS, HOME };
+  try {
+    if (IS_WIN) {
+      if (!exists(EFFICIENCY_INSTALL_PS1)) {
+        warn(`efficiency pack script missing: ${EFFICIENCY_INSTALL_PS1}`);
+        return;
+      }
+      // Native Windows path — no Git Bash/WSL required.
+      execFileSync('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', EFFICIENCY_INSTALL_PS1,
+      ], { encoding: 'utf8', stdio: 'inherit', env });
+    } else {
+      if (!exists(EFFICIENCY_INSTALL)) {
+        warn(`efficiency pack script missing: ${EFFICIENCY_INSTALL}`);
+        return;
+      }
+      if (tryRun('bash', ['-c', 'echo ok']) === null) {
+        warn('bash not available; efficiency pack skipped');
+        return;
+      }
+      execFileSync('bash', [EFFICIENCY_INSTALL], { encoding: 'utf8', stdio: 'inherit', env });
+    }
+    ok('efficiency pack finished');
+  } catch (e) {
+    warn(`efficiency pack reported failures (skills/OpenSpec install continues): ${e.message || e}`);
+  }
+}
+
 function cmdInstall() {
   log('specboot install');
   mkdirp(DATA);
   generateOpenspecSkills();
+  runEfficiencyPack();
   const { skills: sources, issues } = skillCatalog();
   const managed = new Set(readJson(LINKS, []));
   const now = new Set();
@@ -1440,6 +1489,15 @@ function cmdDoctor(args = []) {
   if (!sources.some((s) => s.name.startsWith('openspec-'))) fail('openspec-* skills not generated (run: specboot install)');
   listSources().length ? ok(`${listSources().length} skill sources registered`) : warn('no skill source registered: only the harness skills are available (specboot source add <folder>)');
   for (const f of instructionFiles()) read(f).includes(MARK.start) ? ok(`global rule present in ${f}`) : fail(`global rule missing in ${f}`);
+  // Efficiency pack (machine tools + skills). Missing tools are warnings unless --strict.
+  log('\nEfficiency');
+  const effSkill = (n) => sources.some((s) => s.name === n);
+  effSkill('ponytail') ? ok('ponytail skill linked') : strict('ponytail skill missing (run: specboot install)');
+  effSkill('caveman') ? ok('caveman skill linked') : warn('caveman skill missing (run: specboot install)');
+  tryRun('codegraph', ['--version']) ? ok('codegraph CLI on PATH') : strict('codegraph CLI missing (run: specboot install)');
+  tryRun('rtk', ['--version']) ? ok('rtk CLI on PATH') : warn('rtk CLI missing (optional; run: specboot install)');
+  tryRun('headroom', ['--version']) ? ok('headroom CLI on PATH') : warn('headroom CLI missing (optional; run: specboot install)');
+  if (process.env.SPECBOOT_SKIP_EFFICIENCY === '1') warn('SPECBOOT_SKIP_EFFICIENCY=1 is set');
 
   const info = repoInfo();
   if (!info) { log('\nNot inside a git repository; project checks skipped.'); process.exit(fails ? 1 : 0); }
@@ -1528,7 +1586,9 @@ function cmdDoctor(args = []) {
 const HELP = `specboot - global OpenSpec harness that keeps client repositories clean
 
 Machine (once):
-  specboot install              link skills for Claude Code, Cursor, Codex and opencode; write global rule
+  specboot install              link skills; write global rule; always run efficiency pack (ponytail, caveman,
+                                codegraph, rtk, headroom) via bash (macOS/Linux) or PowerShell (Windows).
+                                Skip pack: SPECBOOT_SKIP_EFFICIENCY=1
   specboot uninstall            remove skill links and global rule (stores are kept)
   specboot source add <path> | remove <path> | list
                                 register a folder of your own skills (for example a plugins repository)
