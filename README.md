@@ -9,7 +9,7 @@ Arnés global para trabajar con OpenSpec en Claude Code, Cursor, Codex y opencod
 
 Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboarding del equipo en un proyecto **ya existente** (dónde empezar: máquina vs repo cliente, y **qué tag usar**): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**. Este README explica cómo funciona. Para pasar un proyecto de OpenSpec 1.x a 2.x con perfil extendido: **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
 
-**Versiones:** instala por tag — [`v0.7.1`](https://github.com/cenavia/specboot/releases/tag/v0.7.1) (actual; corrige el efficiency pack en Windows), [`v0.7.0`](https://github.com/cenavia/specboot/releases/tag/v0.7.0) o [`v0.6.1`](https://github.com/cenavia/specboot/releases/tag/v0.6.1) (anterior). Ejemplo: `git clone https://github.com/cenavia/specboot.git ~/.specboot && cd ~/.specboot && git checkout v0.7.1 && npm link && specboot install`.
+**Versiones:** instala por tag — [`v0.7.2`](https://github.com/cenavia/specboot/releases/tag/v0.7.2) (actual; compatible con OpenSpec 2.x y protege `.codegraph/` en proyectos anteriores), [`v0.7.1`](https://github.com/cenavia/specboot/releases/tag/v0.7.1), [`v0.7.0`](https://github.com/cenavia/specboot/releases/tag/v0.7.0) o [`v0.6.1`](https://github.com/cenavia/specboot/releases/tag/v0.6.1) (anterior). Ejemplo: `git clone https://github.com/cenavia/specboot.git ~/.specboot && cd ~/.specboot && git checkout v0.7.2 && npm link && specboot install`.
 
 ## Requisitos
 
@@ -208,15 +208,15 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 
 | Comando | Qué hace |
 |---------|----------|
-| `specboot install` / `uninstall` | Enlaza skills, regla global y **siempre** el efficiency pack (scripts bash: ponytail, caveman, codegraph, rtk, headroom). Omitir pack: `SPECBOOT_SKIP_EFFICIENCY=1` |
+| `specboot install [--adopt]` / `uninstall` | Enlaza skills, regla global y **siempre** el efficiency pack (ponytail, caveman, codegraph, rtk, headroom). Omitir pack: `SPECBOOT_SKIP_EFFICIENCY=1`. Las `openspec-*` que OpenSpec 2.x deja en las carpetas de los agentes se reemplazan solas (con respaldo); `--adopt` hace lo mismo con cualquier otra carpeta que ocupe un nombre gestionado |
 | `specboot source add <ruta>` / `remove <ruta>` / `list` | Registra una carpeta con tus skills |
 | `specboot init <cliente> [--remote <url>] [--fronts <archivo>] [--new\|--existing] [--docs local\|client\|store] [--gitignore]` | Prepara el proyecto actual |
-| `specboot link` | Recrea los enlaces en un worktree nuevo |
+| `specboot link` | Recrea los enlaces en un worktree nuevo y actualiza el exclude y el hook `pre-commit` a la lista actual |
 | `specboot docs [local\|client\|store]` | Muestra o fija dónde vive `docs/` |
 | `specboot doc add <archivo> [--front <nombre>]` / `remove <archivo>` / `list` | Registra un documento de arquitectura |
 | `specboot mode [greenfield\|brownfield]` | Muestra o cambia el modo |
 | `specboot detect [--json] [--write]` | Detecta el stack |
-| `specboot map [--accept]` | Regenera el inventario, crea plantillas, sincroniza `checks.json`; `--accept` acepta las versiones actuales de skills y documentos |
+| `specboot map [--accept]` | Regenera el inventario, crea plantillas, sincroniza `checks.json` y actualiza exclude y hook; `--accept` acepta las versiones actuales de skills y documentos |
 | `specboot check [--list] [--strict]` | Ejecuta `checks.json` |
 | `specboot sync [-m <mensaje>]` | Confirma tu trabajo, trae el del equipo y sube |
 | `specboot pull` | Trae el trabajo del equipo sin subir |
@@ -236,7 +236,7 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 | `branch-pr` | Abrir o preparar el PR según la política del repositorio destino |
 | `adversarial-review` | Red-team del change (sesión fresca); parte del quality gate |
 | `judgment-day` | Juicio final (doble review); parte del quality gate antes de archivar |
-| `openspec-*` | Generadas por `specboot install` según el perfil OpenSpec (`core` = 6, extendido = 12) |
+| `openspec-*` | Generadas por `specboot install` según el perfil OpenSpec (`core` = 6, extendido = 12). El arnés trae `openspec-sync-specs` solo como respaldo para OpenSpec 1.x; la generada tiene prioridad |
 
 Cada comando OpenSpec dispara también las skills de proceso del arnés (inventario + tablas must/when en `specboot-start` §§5a–5c). El quality gate es: `openspec-verify-change` (solo extendido) → `specboot check` → `adversarial-review` → `mutation-testing`? → `code-auditing`? → `judgment-day`.
 

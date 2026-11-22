@@ -1,6 +1,6 @@
 {
   "name": "specboot",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Global OpenSpec harness for Claude Code, Cursor, Codex and opencode that keeps client repositories clean",
   "type": "module",
   "bin": { "specboot": "bin/specboot.mjs" },

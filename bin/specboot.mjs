@@ -309,6 +309,8 @@ function skillCatalog() {
     if (!VALID_NAME.test(name)) { issues.push(`${origin}: "${name}" is not a valid skill name (lowercase letters, digits, hyphens); skipped`); return; }
     const hash = sha(path.join(dir, 'SKILL.md'));
     const prev = seen.get(name);
+    // The harness ships a few openspec-* skills only as fallbacks: the copy OpenSpec generates wins silently.
+    if (prev && origin === 'specboot' && prev.origin === 'openspec') return;
     if (prev) {
       if (prev.hash !== hash) issues.push(`skill "${name}" exists twice with different content: kept ${prev.origin}, ignored ${origin}`);
       return;
@@ -316,8 +318,8 @@ function skillCatalog() {
     const s = { name, dir, origin, hash };
     seen.set(name, s); skills.push(s);
   };
-  for (const dir of findSkillDirs(path.join(HARNESS, 'skills'), 1)) add(dir, 'specboot');
   if (exists(GENERATED)) for (const dir of findSkillDirs(GENERATED, 1)) add(dir, 'openspec');
+  for (const dir of findSkillDirs(path.join(HARNESS, 'skills'), 1)) add(dir, 'specboot');
   if (exists(EFFICIENCY_SKILLS)) for (const dir of findSkillDirs(EFFICIENCY_SKILLS, 1)) add(dir, 'efficiency');
   for (const src of listSources()) {
     if (!exists(src)) { issues.push(`skill source not found: ${src}`); continue; }
@@ -374,12 +376,22 @@ function generateOpenspecSkills() {
     return;
   }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'specboot-gen-'));
+  // OpenSpec 2.x installs its skills under the user's home (~/.agents/skills, ~/.claude/skills) instead of the
+  // project. Point HOME at a scratch folder so it writes there and never touches the real agent folders,
+  // while the global config (profile, workflows) is still read from the real location.
+  const fakeHome = path.join(tmp, 'home');
+  const proj = path.join(tmp, 'project');
+  mkdirp(fakeHome); mkdirp(proj);
+  const env = { ...process.env, OPENSPEC_TELEMETRY: '0', HOME: fakeHome };
+  if (IS_WIN) env.USERPROFILE = fakeHome;
+  else env.XDG_CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(HOME, '.config');
   try {
-    run(OPENSPEC, ['init', '--tools', 'claude'], { cwd: tmp, env: { ...process.env, OPENSPEC_TELEMETRY: '0' } });
+    run(OPENSPEC, ['init', '--tools', 'claude'], { cwd: proj, env });
     fs.rmSync(GENERATED, { recursive: true, force: true });
     mkdirp(GENERATED);
     let n = 0;
-    for (const base of [path.join(tmp, '.agents', 'skills'), path.join(tmp, '.claude', 'skills')]) {
+    // 2.x writes to the (scratch) home; 1.x writes to the project.
+    for (const root of [fakeHome, proj]) for (const base of [path.join(root, '.agents', 'skills'), path.join(root, '.claude', 'skills')]) {
       if (!exists(base)) continue;
       for (const name of fs.readdirSync(base)) {
         const src = real(path.join(base, name));
@@ -389,7 +401,8 @@ function generateOpenspecSkills() {
         n++;
       }
     }
-    ok(`generated ${n} openspec-* skills with OpenSpec ${tryRun(OPENSPEC, ['--version'])}`);
+    n ? ok(`generated ${n} openspec-* skills with OpenSpec ${tryRun(OPENSPEC, ['--version'])}`)
+      : warn(`OpenSpec ${tryRun(OPENSPEC, ['--version'])} generated no openspec-* skills; check: openspec config get workflows`);
   } catch (e) {
     warn(`could not generate openspec-* skills: ${String(e.stderr || e.message).split('\n')[0]}`);
   } finally {
@@ -434,7 +447,35 @@ function runEfficiencyPack() {
   }
 }
 
-function cmdInstall() {
+// A skill folder that something other than specboot put in an agent's skills folder, under a name specboot manages.
+// OpenSpec 2.x installs its own openspec-* skills there; specboot regenerates the same skills, so those are safe
+// to take over. Anything else is only replaced with `specboot install --adopt`, after a backup.
+function conflictOwner(dest) {
+  const r = real(dest);
+  const md = r ? read(path.join(r, 'SKILL.md')) : '';
+  if (path.basename(dest).startsWith('openspec-') && /^\s*author:\s*["']?openspec["']?\s*$/m.test(md)) return 'openspec';
+  return 'other';
+}
+function describeConflict(dest) {
+  const st = lstat(dest);
+  if (!st) return `${dest} is missing`;
+  const what = st.isSymbolicLink() ? `a link to ${fs.readlinkSync(dest)}` : 'a folder';
+  const who = conflictOwner(dest) === 'openspec' ? 'installed by OpenSpec' : 'not created by specboot';
+  return `${dest} is ${what} ${who}`;
+}
+let backupDir = null;
+function backupEntry(dest) {
+  if (!backupDir) backupDir = path.join(DATA, 'backups', new Date().toISOString().replace(/[:.]/g, '-'));
+  const out = path.join(backupDir, (path.basename(path.dirname(path.dirname(dest))) + '-' + path.basename(path.dirname(dest))).replace(/^\./, ''), path.basename(dest));
+  mkdirp(path.dirname(out));
+  const st = lstat(dest);
+  if (st.isSymbolicLink()) { fs.writeFileSync(out + '.link', fs.readlinkSync(dest) + '\n'); fs.rmSync(dest, { force: true }); }
+  else { try { fs.renameSync(dest, out); } catch { fs.cpSync(dest, out, { recursive: true }); fs.rmSync(dest, { recursive: true, force: true }); } }
+  return out;
+}
+
+function cmdInstall(args = []) {
+  const { flags } = parseArgs(args);
   log('specboot install');
   mkdirp(DATA);
   generateOpenspecSkills();
@@ -442,6 +483,8 @@ function cmdInstall() {
   const { skills: sources, issues } = skillCatalog();
   const managed = new Set(readJson(LINKS, []));
   const now = new Set();
+  const conflicts = [];
+  let tookOver = 0;
   for (const base of skillTargets()) {
     let linked = 0;
     for (const s of sources) {
@@ -449,7 +492,9 @@ function cmdInstall() {
       const st = lstat(dest);
       if (st) {
         if (st.isSymbolicLink() && (managed.has(dest) || isOurs(dest) || !real(dest))) fs.rmSync(dest, { force: true });
-        else { warn(`${dest} already exists and is not managed by specboot; skipped.`); continue; }
+        else if (conflictOwner(dest) === 'openspec') { backupEntry(dest); tookOver++; }
+        else if (flags.adopt) { const why = describeConflict(dest); backupEntry(dest); warn(`${why}: backed up and replaced`); }
+        else { conflicts.push(dest); continue; }
       }
       linkDir(s.dir, dest); now.add(dest); linked++;
     }
@@ -459,6 +504,14 @@ function cmdInstall() {
   for (const p of managed) if (!now.has(p) && lstat(p)?.isSymbolicLink()) { fs.rmSync(p, { force: true }); pruned++; }
   if (pruned) ok(`${pruned} stale skill links removed`);
   writeJson(LINKS, [...now]);
+  if (tookOver) ok(`${tookOver} openspec-* entries that OpenSpec had installed in the agent folders now point to the generated copies`);
+  if (backupDir) ok(`replaced entries backed up to ${backupDir}`);
+  if (conflicts.length) {
+    warn(`${conflicts.length} skills not linked: their names are taken by folders specboot did not create`);
+    conflicts.forEach((d) => log(`        ${describeConflict(d)}`));
+    log('        to back them up and use the harness version: specboot install --adopt');
+    process.exitCode = 1;
+  }
   issues.slice(0, 20).forEach(warn);
   if (issues.length > 20) warn(`... and ${issues.length - 20} more skill issues`);
   for (const f of instructionFiles()) { upsertBlock(f, MARK.start, MARK.end, GLOBAL_RULE); ok(`global rule written to ${f}`); }
@@ -578,6 +631,30 @@ function ensureHook(info, docsStore = false, quiet = false) {
   mkdirp(path.dirname(file));
   fs.writeFileSync(file, hookText(docsStore), { mode: 0o755 });
   if (!quiet) ok('pre-commit guard installed in .git/hooks (local, never pushed)');
+}
+
+// Rewrite the exclude block and the pre-commit guard with the current lists. Projects set up by an older
+// harness keep an outdated block (for example without /.codegraph/) until this runs; link and map call it.
+function refreshGuards(info, client) {
+  const priv = isPrivate(loadFronts(client).docs);
+  ensureExclude(info, priv, true);
+  ensureHook(info, priv, true);
+}
+
+// What the guards of this clone are missing compared with the current lists.
+function guardGaps(info, placement) {
+  const priv = isPrivate(placement);
+  const excl = read(path.join(info.common, 'info', 'exclude'));
+  const s = excl.indexOf(XMARK.start); const e = excl.indexOf(XMARK.end, s + 1);
+  const block = s >= 0 ? excl.slice(s, e >= 0 ? e : undefined).split('\n').map((l) => l.trim()) : null;
+  const missingExcludes = block ? excludesFor(priv).filter((x) => !block.includes(x)) : null;
+  let hook = 'unmanaged';
+  if (!tryGit(info.root, 'config', '--get', 'core.hooksPath')) {
+    const hf = path.join(info.common, 'hooks', 'pre-commit');
+    const cur = read(hf).includes('specboot:pre-commit') ? read(hf) : read(hf + '.specboot');
+    hook = !cur.includes('specboot:pre-commit') ? 'missing' : cur.includes(blockRe(priv)) ? 'current' : 'outdated';
+  }
+  return { missingExcludes, hook };
 }
 
 const identity = (dir) => ['-c', 'user.name=' + (tryGit(dir, 'config', 'user.name') || 'specboot'), '-c', 'user.email=' + (tryGit(dir, 'config', 'user.email') || 'specboot@localhost')];
@@ -761,6 +838,8 @@ function cmdLink() {
   ensureLink(info, client);
   const placement = loadFronts(client).docs;
   if (isPrivate(placement)) applyDocsPlacement(info, client, placement, true);
+  refreshGuards(info, client);
+  ok('exclude and pre-commit guard refreshed');
 }
 
 // ---- docs/ kept local: a real folder in the client project, ignored by git, backed up to the store.
@@ -1419,6 +1498,7 @@ function cmdMap(args = []) {
   const accept = !!(flags['accept-skills'] || flags.accept);
   const r = mapProject(info, client, { acceptSkills: accept });
   log('specboot map');
+  refreshGuards(info, client);
   ok(`project-facts.md rewritten (${r.ruleFiles} rule sources found)`);
   if (r.created.length) ok(`scaffolded: ${r.created.join(', ')}`);
   r.checks.length ? ok(`${r.checks.length} executable checks in checks.json`) : warn('no executable checks: declare them per front in fronts.json, or add them to openspec/standards/checks.json');
@@ -1484,7 +1564,14 @@ function cmdDoctor(args = []) {
   const sources = skillSources();
   for (const base of skillTargets()) {
     const missing = sources.filter((s) => real(path.join(base, s.name)) !== real(s.dir)).map((s) => s.name);
-    missing.length ? fail(`${base}: ${missing.length} skills not linked, e.g. ${missing.slice(0, 4).join(', ')} (run: specboot install)`) : ok(`${sources.length} skills linked in ${base}`);
+    if (!missing.length) { ok(`${sources.length} skills linked in ${base}`); continue; }
+    const taken = missing.filter((n) => lstat(path.join(base, n)) && real(path.join(base, n)) && !isOurs(path.join(base, n)));
+    const free = missing.filter((n) => !taken.includes(n));
+    if (free.length) fail(`${base}: ${free.length} skills not linked, e.g. ${free.slice(0, 4).join(', ')} (run: specboot install)`);
+    if (taken.length) {
+      fail(`${base}: ${taken.length} skill names taken by folders specboot did not create (run: specboot install --adopt)`);
+      taken.slice(0, 6).forEach((n) => log(`        ${describeConflict(path.join(base, n))}`));
+    }
   }
   if (!sources.some((s) => s.name.startsWith('openspec-'))) fail('openspec-* skills not generated (run: specboot install)');
   listSources().length ? ok(`${listSources().length} skill sources registered`) : warn('no skill source registered: only the harness skills are available (specboot source add <folder>)');
@@ -1511,9 +1598,14 @@ function cmdDoctor(args = []) {
     ? ok('openspec/ linked to the store')
     : fail('openspec/ link missing in this working tree (run: specboot link)');
   const excl = read(path.join(info.common, 'info', 'exclude'));
-  excl.includes(XMARK.start) ? ok('exclude entries present') : fail('exclude entries missing (run: specboot init)');
-  if (tryGit(info.root, 'config', '--get', 'core.hooksPath')) warn('core.hooksPath set; pre-commit guard not managed by specboot');
-  else read(path.join(info.common, 'hooks', 'pre-commit')).includes('specboot:pre-commit') ? ok('pre-commit guard installed') : fail('pre-commit guard missing');
+  const gaps = guardGaps(info, placement);
+  if (!gaps.missingExcludes) fail('exclude entries missing (run: specboot init)');
+  else if (gaps.missingExcludes.length) fail(`exclude is outdated, missing: ${gaps.missingExcludes.join(', ')} (run: specboot link)`);
+  else ok('exclude entries present and current');
+  if (gaps.hook === 'unmanaged') warn('core.hooksPath set; pre-commit guard not managed by specboot');
+  else if (gaps.hook === 'missing') fail('pre-commit guard missing (run: specboot link)');
+  else if (gaps.hook === 'outdated') fail('pre-commit guard is outdated: it does not block every private path (run: specboot link)');
+  else ok('pre-commit guard installed and current');
   const guarded = excl.split('\n').includes('/docs') && (tryGit(info.root, 'config', '--get', 'core.hooksPath') || read(path.join(info.common, 'hooks', 'pre-commit')).includes('docs(/|$)'));
   if (placement === 'local') {
     const d = path.join(info.root, 'docs'); const main = mainRoot(info);
@@ -1589,6 +1681,8 @@ Machine (once):
   specboot install              link skills; write global rule; always run efficiency pack (ponytail, caveman,
                                 codegraph, rtk, headroom) via bash (macOS/Linux) or PowerShell (Windows).
                                 Skip pack: SPECBOOT_SKIP_EFFICIENCY=1
+  specboot install --adopt      also back up (~/.specboot-data/backups) and replace skill folders that other
+                                tools left under names specboot manages (openspec-* from OpenSpec: always)
   specboot uninstall            remove skill links and global rule (stores are kept)
   specboot source add <path> | remove <path> | list
                                 register a folder of your own skills (for example a plugins repository)

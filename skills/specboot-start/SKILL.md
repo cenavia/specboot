@@ -101,7 +101,7 @@ openspec config get workflows
 | `specboot-prescribe` | Write standards (greenfield) | **Lifecycle** (before OpenSpec coding), not a change command |
 | `specboot-map` | Map/verify standards (brownfield / handoff / refresh) | Before first change if draft; **before `archive`** if conventions changed |
 | `enrich-us` | Turn a vague story into an implementation-ready ticket | Before `propose`/`new`/`ff`; optional on `explore` |
-| `openspec-sync-specs` | Harness copy of OpenSpec sync (wins over generated) | `sync` |
+| `openspec-sync-specs` | OpenSpec sync. The generated copy wins; the harness ships a fallback for OpenSpec 1.x core, which does not generate it | `sync` |
 | `using-git-worktrees` | Isolated worktree for feature work | Before/during `apply` when isolation is needed; **must** under `factory` |
 | `work-unit-commits` | Split delivery into reviewable commits | After `apply` (must) |
 | `chained-pr` | Stack PRs when ~400+ lines | After `apply` when over budget |
@@ -133,7 +133,7 @@ openspec config get workflows
 | `propose` / `opsx propose` | `openspec-propose` | **when** epic/product: `specboot-plan` first. **when** vague story: `enrich-us` first. **when** FE behavior: `playwright-qa-scenarios` (catalog) after enrich. |
 | `apply` / `opsx apply` | `openspec-apply-change` | **must:** `ponytail` (minimal necessary diff). **when** isolation needed: `using-git-worktrees`. **when** FE E2E tasks: `playwright-qa-scenarios` (suite) + `playwright-skill`. Prefer **codegraph** if the project is indexed. **must** after code lands: `work-unit-commits`. **when** ~400+ lines: `chained-pr`. **when** opening PR: `branch-pr`. **when** Jira packaging required: `commit`. **when** docs standards require it: `update-docs`. **when** user asks demo: `show-spec-working`. |
 | `update` / `opsx update` | `openspec-update-change` | — (planning artifacts only). |
-| `sync` / `opsx sync` | `openspec-sync-specs` | Use the harness skill of that name (same intent as OpenSpec sync). |
+| `sync` / `opsx sync` | `openspec-sync-specs` | Use the skill of that name (OpenSpec's when generated, else the harness fallback). |
 | `archive` / `opsx archive` | `openspec-archive-change` | **must:** quality gate §5c first. **when** conventions changed: `specboot-map` (+ overrides/decisions) before archive. **must** after: `specboot sync` (store). |
 
 Core has no `verify` command → §5c is still **mandatory before every archive**.

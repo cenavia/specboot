@@ -1,6 +1,6 @@
 # specboot: guía rápida
 
-Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield). Versión 0.7.1.
+Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield). Versión 0.7.2.
 
 Onboarding detallado del equipo (recomendación máquina → luego proyecto existente): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**.
 
@@ -34,7 +34,7 @@ Cada `SKILL.md` necesita `name:` y `description:` en su encabezado. De un plugin
 
 ## 2. Instalación (una vez por máquina)
 
-Instala por **tag** ([releases](https://github.com/cenavia/specboot/releases)): **`v0.7.1`** (actual), `v0.7.0` o **`v0.6.1`** (estable anterior). Detalle: [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md).
+Instala por **tag** ([releases](https://github.com/cenavia/specboot/releases)): **`v0.7.2`** (actual), `v0.7.1`, `v0.7.0` o **`v0.6.1`** (estable anterior). Detalle: [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md).
 
 ```bash
 # 1. Requisitos
@@ -44,11 +44,11 @@ npm install -g @fission-ai/openspec@latest
 # 2. El arnés en la versión acordada
 git clone https://github.com/cenavia/specboot.git ~/.specboot
 cd ~/.specboot
-git checkout v0.7.1                             # o: git checkout v0.6.1
+git checkout v0.7.2                             # o: git checkout v0.6.1
 npm link                                        # comando global `specboot`
 
 # Cambiar de versión más tarde:
-#   cd ~/.specboot && git fetch --tags && git checkout v0.7.1 && npm link && specboot install
+#   cd ~/.specboot && git fetch --tags && git checkout v0.7.2 && npm link && specboot install
 
 # 3. Tus skills
 specboot source add ~/code/agents/plugins       # la carpeta que contiene tus skills
@@ -157,7 +157,7 @@ Según el tamaño del pedido: producto, épica o funcionalidad grande → primer
 | `propose` / `new` / `ff` | `specboot-plan`? · `enrich-us`? · `playwright-qa-scenarios` (catálogo FE)? |
 | `continue` / `update` | (solo artefactos OpenSpec) |
 | `apply` | `using-git-worktrees`? · E2E FE: `playwright-qa-scenarios`+`playwright-skill` · **must** `work-unit-commits` · `chained-pr`? · `branch-pr` · `commit`? · `update-docs`? · `show-spec-working`? |
-| `sync` | `openspec-sync-specs` (copia del arnés) |
+| `sync` | `openspec-sync-specs` (la de OpenSpec; el arnés trae una copia de respaldo para OpenSpec 1.x) |
 | **verify** / pre-**archive** | `openspec-verify-change` (solo extendido) → `specboot check` → `adversarial-review` → `mutation-testing`? → `code-auditing`? → **`judgment-day`** |
 | `archive` / `bulk-archive` | quality gate + `specboot-map`? + `specboot sync` |
 | `onboard` | `specboot-start` primero |
@@ -263,11 +263,11 @@ Opciones de `init`: `--remote <url>`, `--fronts <archivo>`, `--new`, `--existing
 
 ## 10. Compartir con el equipo
 
-Cada compañero instala el **mismo tag** del arnés (`v0.7.1` o el que acuerden):
+Cada compañero instala el **mismo tag** del arnés (`v0.7.2` o el que acuerden):
 
 ```bash
 git clone https://github.com/cenavia/specboot.git ~/.specboot
-cd ~/.specboot && git checkout v0.7.1 && npm link
+cd ~/.specboot && git checkout v0.7.2 && npm link
 specboot source add <ruta-skills-del-equipo>
 specboot install && specboot doctor
 ```
