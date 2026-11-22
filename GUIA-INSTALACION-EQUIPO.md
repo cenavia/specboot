@@ -28,7 +28,8 @@ Instala **siempre por tag**, no a ciegas desde `main` sin saber qué release es.
 
 | Tag | Cuándo usarla | Release |
 |-----|---------------|---------|
-| **`v0.7.1`** (recomendada) | Igual que 0.7.0 + efficiency pack corregido en Windows (PowerShell 5.1) y detección real de fallos | [v0.7.1](https://github.com/cenavia/specboot/releases/tag/v0.7.1) |
+| **`v0.7.2`** (recomendada) | Igual que 0.7.1 + compatible con OpenSpec 2.x (12 skills generadas, sin choques en `doctor`), `install --adopt`, y `doctor`/`link` detectan y corrigen un exclude o hook desactualizado | [v0.7.2](https://github.com/cenavia/specboot/releases/tag/v0.7.2) |
+| `v0.7.1` | Efficiency pack corregido en Windows. Con OpenSpec 2.x `doctor` marca `openspec-sync-specs`: usa 0.7.2 | [v0.7.1](https://github.com/cenavia/specboot/releases/tag/v0.7.1) |
 | `v0.7.0` | Efficiency pack, cableado OpenSpec 2 extendido, skills de entrega, esta guía. En Windows el pack puede fallar: usa 0.7.1 | [v0.7.0](https://github.com/cenavia/specboot/releases/tag/v0.7.0) |
 | **`v0.6.1`** | Solo si el equipo debe quedarse en la estable anterior (sin efficiency pack / wiring 0.7) | [v0.6.1](https://github.com/cenavia/specboot/releases/tag/v0.6.1) |
 
@@ -38,7 +39,7 @@ Repo: `https://github.com/cenavia/specboot.git`
 
 ## Quick path (proyecto existente, Mac/Linux)
 
-Sustituye `<TAG>`, skills y URLs del store por lo que acuerde el equipo. Para casi todos: `<TAG>=v0.7.1`.
+Sustituye `<TAG>`, skills y URLs del store por lo que acuerde el equipo. Para casi todos: `<TAG>=v0.7.2`.
 
 ```bash
 # ——— FASE A (máquina; fuera del cliente) ———
@@ -48,11 +49,11 @@ npm install -g @fission-ai/openspec@latest
 # Clone canónico + versión concreta
 git clone https://github.com/cenavia/specboot.git ~/.specboot
 cd ~/.specboot
-git checkout v0.7.1                                     # o: git checkout v0.6.1
+git checkout v0.7.2                                     # o: git checkout v0.6.1
 npm link
 
 # Mantenedores con clone de desarrollo:
-#   cd /ruta/a/specboot && git checkout v0.7.1 && npm link
+#   cd /ruta/a/specboot && git checkout v0.7.2 && npm link
 
 specboot source add <ruta-a-tu-carpeta-de-skills>       # la que el equipo acuerde
 specboot install                                        # enlaza skills (+ efficiency pack en 0.7+)
@@ -87,7 +88,7 @@ En **Cursor**, tras `install`: Settings → Rules → User Rules → pega el blo
 
 | Opción | Cuándo | Comandos |
 |--------|--------|----------|
-| **`~/.specboot` + tag (recomendada)** | Todo el equipo | `git clone … ~/.specboot && cd ~/.specboot && git checkout v0.7.1 && npm link` |
+| **`~/.specboot` + tag (recomendada)** | Todo el equipo | `git clone … ~/.specboot && cd ~/.specboot && git checkout v0.7.2 && npm link` |
 | **Clone de desarrollo** (otro path) | Mantenedores | Mismo `git checkout <tag>` + `npm link` |
 | **Dentro del repo del cliente** | **No** | El arnés no vive en el cliente |
 
@@ -96,7 +97,7 @@ Tras `npm link`, comprueba comando y versión del checkout:
 ```bash
 which specboot
 cd ~/.specboot && git describe --tags --always && node -p "require('./package.json').version"
-# esperable en la release actual: v0.7.1  y  0.7.1
+# esperable en la release actual: v0.7.2  y  0.7.2
 ```
 
 ### Cambiar de versión (misma máquina)
@@ -106,7 +107,7 @@ Cuando el equipo acuerda subir o bajar de tag:
 ```bash
 cd ~/.specboot
 git fetch --tags
-git checkout v0.7.1          # o v0.6.1
+git checkout v0.7.2          # o v0.6.1
 npm link                     # por si el link se rompió
 specboot install             # obligatorio: re-enlaza skills/reglas desde ESE arnés
 specboot doctor
@@ -248,7 +249,7 @@ Si el exclude solo era local y el compañero ve `openspec/` sin ignorar: el lead
 ### Máquina
 
 - [ ] Node ≥ 20.19 y OpenSpec global
-- [ ] Arnés en `~/.specboot` (o clone de dev) en el **tag acordado** (`v0.7.1`, `v0.7.0` o `v0.6.1`) + `npm link`
+- [ ] Arnés en `~/.specboot` (o clone de dev) en el **tag acordado** (`v0.7.2`, `v0.7.1`, `v0.7.0` o `v0.6.1`) + `npm link`
 - [ ] `git describe --tags` / `package.json` coinciden con ese tag
 - [ ] `specboot source add` a la carpeta de skills del equipo
 - [ ] `specboot install` terminó (en 0.7+: efficiency pack o `SPECBOOT_SKIP_EFFICIENCY=1`)
@@ -271,6 +272,8 @@ Si el exclude solo era local y el compañero ve `openspec/` sin ignorar: el lead
 
 | Síntoma | Qué suele ser | Arreglo |
 |---------|---------------|---------|
+| `doctor`: «skill names taken by folders specboot did not create» | Otra herramienta (Gentle AI, `npx skills`, OpenSpec) dejó una carpeta con ese nombre | `specboot install --adopt` (respalda en `~/.specboot-data/backups/` y enlaza la del arnés) |
+| `doctor`: «exclude is outdated» / «pre-commit guard is outdated» | Proyecto preparado con un arnés anterior (p. ej. sin `.codegraph/`) | `specboot link` en ese repo |
 | `specboot: command not found` | No hiciste `npm link` o PATH de npm global | `cd` al arnés → `npm link`; nueva shell |
 | Pack “colgado” en codegraph/rtk | Prompt interactivo sin flags / salida oculta | Actualiza arnés; Ctrl+C; `specboot install` de nuevo |
 | Skills en `fronts.json` no instaladas | Falta `source add` | Ejecuta el `fix:` que imprime `doctor` |

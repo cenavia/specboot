@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.2
+
+Compatibilidad con OpenSpec 2.x y protección real de proyectos preparados con un arnés anterior. Para actualizar: `git fetch --tags && git checkout v0.7.2 && npm link && specboot install`, y en cada proyecto `specboot link` (o `specboot map`).
+
+- **Fix: skills `openspec-*` con OpenSpec 2.x.** OpenSpec 2.x instala sus skills en la carpeta personal (`~/.agents/skills`, `~/.claude/skills`) y no en el proyecto, así que `install` informaba `generated 0`, dejaba vacía `generated-skills` y en cada ejecución OpenSpec reescribía las carpetas de los agentes. Ahora `openspec init` corre con un `HOME` temporal (la configuración global, con el perfil y los workflows, se sigue leyendo del sitio real) y se generan de nuevo las 6 (core) o 12 (extendido). OpenSpec 1.x sigue funcionando.
+- **Fix: falso FAIL de `openspec-sync-specs` en `doctor`.** La copia del arnés (generada con OpenSpec 1.3.1) chocaba con la de OpenSpec 2.x. Ahora la skill generada tiene prioridad y la del arnés queda solo como respaldo para OpenSpec 1.x core, que no la genera.
+- **`install` se hace cargo de las `openspec-*` que dejó OpenSpec.** Las carpetas o enlaces `openspec-*` con `author: openspec` en las carpetas de los agentes se respaldan en `~/.specboot-data/backups/<fecha>/` y se reemplazan por los enlaces del arnés.
+- **Nuevo `specboot install --adopt`.** Hace lo mismo con cualquier otra carpeta que ocupe un nombre que specboot gestiona (por ejemplo `branch-pr` o `judgment-day` instaladas por otra herramienta). Sin `--adopt`, `install` lista cada choque con su ruta y sale con código 1.
+- **`doctor` explica los choques.** En lugar de repetir `run: specboot install` (que no los arreglaba), indica qué ruta ocupa el nombre, si es un enlace o una carpeta, si la instaló OpenSpec, y propone `specboot install --adopt`.
+- **Fix: exclude y hook desactualizados pasaban `doctor`.** Un proyecto preparado antes de 0.7 no tenía `/.codegraph/` en `.git/info/exclude` ni en el hook `pre-commit`, y `doctor` solo comprobaba que el bloque existiera. Ahora `doctor` compara con la lista actual y falla nombrando lo que falta; `specboot link` y `specboot map` reescriben exclude y hook siempre.
+
 ## 0.7.1
 
 Correcciones del efficiency pack, sobre todo en Windows. Para actualizar: `git fetch --tags && git checkout v0.7.1 && npm link && specboot install`.
