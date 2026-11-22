@@ -28,7 +28,8 @@ Instala **siempre por tag**, no a ciegas desde `main` sin saber qué release es.
 
 | Tag | Cuándo usarla | Release |
 |-----|---------------|---------|
-| **`v0.7.2`** (recomendada) | Igual que 0.7.1 + compatible con OpenSpec 2.x (12 skills generadas, sin choques en `doctor`), `install --adopt`, y `doctor`/`link` detectan y corrigen un exclude o hook desactualizado | [v0.7.2](https://github.com/cenavia/specboot/releases/tag/v0.7.2) |
+| **`v0.7.3`** (recomendada) | Igual que 0.7.2 + regla de Cursor automática en cada proyecto (`.cursor/rules/specboot.mdc`); ya no hay que pegarla | [v0.7.3](https://github.com/cenavia/specboot/releases/tag/v0.7.3) |
+| `v0.7.2` | Igual que 0.7.1 + compatible con OpenSpec 2.x (12 skills generadas, sin choques en `doctor`), `install --adopt`, y `doctor`/`link` detectan y corrigen un exclude o hook desactualizado | [v0.7.2](https://github.com/cenavia/specboot/releases/tag/v0.7.2) |
 | `v0.7.1` | Efficiency pack corregido en Windows. Con OpenSpec 2.x `doctor` marca `openspec-sync-specs`: usa 0.7.2 | [v0.7.1](https://github.com/cenavia/specboot/releases/tag/v0.7.1) |
 | `v0.7.0` | Efficiency pack, cableado OpenSpec 2 extendido, skills de entrega, esta guía. En Windows el pack puede fallar: usa 0.7.1 | [v0.7.0](https://github.com/cenavia/specboot/releases/tag/v0.7.0) |
 | **`v0.6.1`** | Solo si el equipo debe quedarse en la estable anterior (sin efficiency pack / wiring 0.7) | [v0.6.1](https://github.com/cenavia/specboot/releases/tag/v0.6.1) |
@@ -39,7 +40,7 @@ Repo: `https://github.com/cenavia/specboot.git`
 
 ## Quick path (proyecto existente, Mac/Linux)
 
-Sustituye `<TAG>`, skills y URLs del store por lo que acuerde el equipo. Para casi todos: `<TAG>=v0.7.2`.
+Sustituye `<TAG>`, skills y URLs del store por lo que acuerde el equipo. Para casi todos: `<TAG>=v0.7.3`.
 
 ```bash
 # ——— FASE A (máquina; fuera del cliente) ———
@@ -49,11 +50,11 @@ npm install -g @fission-ai/openspec@latest
 # Clone canónico + versión concreta
 git clone https://github.com/cenavia/specboot.git ~/.specboot
 cd ~/.specboot
-git checkout v0.7.2                                     # o: git checkout v0.6.1
+git checkout v0.7.3                                     # o: git checkout v0.6.1
 npm link
 
 # Mantenedores con clone de desarrollo:
-#   cd /ruta/a/specboot && git checkout v0.7.2 && npm link
+#   cd /ruta/a/specboot && git checkout v0.7.3 && npm link
 
 specboot source add <ruta-a-tu-carpeta-de-skills>       # la que el equipo acuerde
 specboot install                                        # enlaza skills (+ efficiency pack en 0.7+)
@@ -68,7 +69,7 @@ specboot check --list
 
 En el agente: «Ejecuta la skill `specboot-map`» → revisas `[assumed]` → `specboot check` → `specboot sync -m "standards: map project"`.
 
-En **Cursor**, tras `install`: Settings → Rules → User Rules → pega el bloque que imprimió `specboot install`.
+En **Cursor** no hay que pegar nada: `specboot init` (y `link`/`map`) escriben la regla en `.cursor/rules/specboot.mdc` del proyecto, ignorado por git.
 
 ---
 
@@ -88,7 +89,7 @@ En **Cursor**, tras `install`: Settings → Rules → User Rules → pega el blo
 
 | Opción | Cuándo | Comandos |
 |--------|--------|----------|
-| **`~/.specboot` + tag (recomendada)** | Todo el equipo | `git clone … ~/.specboot && cd ~/.specboot && git checkout v0.7.2 && npm link` |
+| **`~/.specboot` + tag (recomendada)** | Todo el equipo | `git clone … ~/.specboot && cd ~/.specboot && git checkout v0.7.3 && npm link` |
 | **Clone de desarrollo** (otro path) | Mantenedores | Mismo `git checkout <tag>` + `npm link` |
 | **Dentro del repo del cliente** | **No** | El arnés no vive en el cliente |
 
@@ -97,7 +98,7 @@ Tras `npm link`, comprueba comando y versión del checkout:
 ```bash
 which specboot
 cd ~/.specboot && git describe --tags --always && node -p "require('./package.json').version"
-# esperable en la release actual: v0.7.2  y  0.7.2
+# esperable en la release actual: v0.7.3  y  0.7.3
 ```
 
 ### Cambiar de versión (misma máquina)
@@ -107,7 +108,7 @@ Cuando el equipo acuerda subir o bajar de tag:
 ```bash
 cd ~/.specboot
 git fetch --tags
-git checkout v0.7.2          # o v0.6.1
+git checkout v0.7.3          # o v0.6.1
 npm link                     # por si el link se rompió
 specboot install             # obligatorio: re-enlaza skills/reglas desde ESE arnés
 specboot doctor
@@ -249,11 +250,11 @@ Si el exclude solo era local y el compañero ve `openspec/` sin ignorar: el lead
 ### Máquina
 
 - [ ] Node ≥ 20.19 y OpenSpec global
-- [ ] Arnés en `~/.specboot` (o clone de dev) en el **tag acordado** (`v0.7.2`, `v0.7.1`, `v0.7.0` o `v0.6.1`) + `npm link`
+- [ ] Arnés en `~/.specboot` (o clone de dev) en el **tag acordado** (`v0.7.3`, `v0.7.2`, `v0.7.1`, `v0.7.0` o `v0.6.1`) + `npm link`
 - [ ] `git describe --tags` / `package.json` coinciden con ese tag
 - [ ] `specboot source add` a la carpeta de skills del equipo
 - [ ] `specboot install` terminó (en 0.7+: efficiency pack o `SPECBOOT_SKIP_EFFICIENCY=1`)
-- [ ] Regla de Cursor pegada si usas Cursor
+- [ ] Si usas Cursor: `doctor` muestra «Cursor rule present» en cada proyecto
 - [ ] `specboot doctor` OK a nivel máquina
 
 ### Proyecto existente
@@ -287,6 +288,6 @@ Más casos: [`CHEATSHEET.md`](CHEATSHEET.md) §9.
 
 ## Next step
 
-1. Termina Fase A y pega la regla de Cursor si aplica.
+1. Termina Fase A.
 2. En tu proyecto existente: Fase B + `specboot-map`.
 3. Para el ciclo diario de cambios (propose → apply → verify → archive): [`CHEATSHEET.md`](CHEATSHEET.md) §5 y la skill `specboot-start`.

@@ -9,7 +9,7 @@ Arnés global para trabajar con OpenSpec en Claude Code, Cursor, Codex y opencod
 
 Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboarding del equipo en un proyecto **ya existente** (dónde empezar: máquina vs repo cliente, y **qué tag usar**): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**. Este README explica cómo funciona. Para pasar un proyecto de OpenSpec 1.x a 2.x con perfil extendido: **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
 
-**Versiones:** instala por tag — [`v0.7.2`](https://github.com/cenavia/specboot/releases/tag/v0.7.2) (actual; compatible con OpenSpec 2.x y protege `.codegraph/` en proyectos anteriores), [`v0.7.1`](https://github.com/cenavia/specboot/releases/tag/v0.7.1), [`v0.7.0`](https://github.com/cenavia/specboot/releases/tag/v0.7.0) o [`v0.6.1`](https://github.com/cenavia/specboot/releases/tag/v0.6.1) (anterior). Ejemplo: `git clone https://github.com/cenavia/specboot.git ~/.specboot && cd ~/.specboot && git checkout v0.7.2 && npm link && specboot install`.
+**Versiones:** instala por tag — [`v0.7.3`](https://github.com/cenavia/specboot/releases/tag/v0.7.3) (actual; regla de Cursor automática por proyecto), [`v0.7.2`](https://github.com/cenavia/specboot/releases/tag/v0.7.2), [`v0.7.1`](https://github.com/cenavia/specboot/releases/tag/v0.7.1), [`v0.7.0`](https://github.com/cenavia/specboot/releases/tag/v0.7.0) o [`v0.6.1`](https://github.com/cenavia/specboot/releases/tag/v0.6.1) (anterior). Ejemplo: `git clone https://github.com/cenavia/specboot.git ~/.specboot && cd ~/.specboot && git checkout v0.7.3 && npm link && specboot install`.
 
 ## Requisitos
 
@@ -197,6 +197,7 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 ## Protección del repositorio del cliente
 
 - **`.git/info/exclude`** oculta `openspec`, `.claude/`, `.cursor/`, `.codex/`, `.opencode/`, `.agents/`, `.atl/`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `codex.md`, y `docs` salvo en ubicación `client`.
+- **Regla de Cursor.** Cursor guarda sus User Rules en su configuración, no en un archivo, así que `init`, `link` y `map` escriben la regla del arnés como regla de proyecto en `.cursor/rules/specboot.mdc` (`alwaysApply: true`). Vive bajo `.cursor/`, que ya está oculto y bloqueado. Si ya existe un archivo con ese nombre que no es de specboot, no se toca.
 - **Hook `pre-commit`** rechaza commits que añadan esos archivos, incluso con `git add -f`. Solo bloquea archivos nuevos.
 - **Ambos son locales a tu clon.** Un compañero que clone el repositorio no queda protegido. Para protegerlos a todos: `specboot init <cliente> --gitignore` añade `/openspec` (y `/docs` si es privado) al `.gitignore` versionado. Eso hace visible el nombre de la carpeta en el repositorio del cliente; por eso es opcional.
 - Si el repositorio usa `core.hooksPath` (Husky), el hook no se instala. Si ya hay un `pre-commit`, se escribe `pre-commit.specboot` al lado.
@@ -211,12 +212,12 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 | `specboot install [--adopt]` / `uninstall` | Enlaza skills, regla global y **siempre** el efficiency pack (ponytail, caveman, codegraph, rtk, headroom). Omitir pack: `SPECBOOT_SKIP_EFFICIENCY=1`. Las `openspec-*` que OpenSpec 2.x deja en las carpetas de los agentes se reemplazan solas (con respaldo); `--adopt` hace lo mismo con cualquier otra carpeta que ocupe un nombre gestionado |
 | `specboot source add <ruta>` / `remove <ruta>` / `list` | Registra una carpeta con tus skills |
 | `specboot init <cliente> [--remote <url>] [--fronts <archivo>] [--new\|--existing] [--docs local\|client\|store] [--gitignore]` | Prepara el proyecto actual |
-| `specboot link` | Recrea los enlaces en un worktree nuevo y actualiza el exclude y el hook `pre-commit` a la lista actual |
+| `specboot link` | Recrea los enlaces en un worktree nuevo y actualiza el exclude, el hook `pre-commit` y la regla de Cursor (`.cursor/rules/specboot.mdc`) |
 | `specboot docs [local\|client\|store]` | Muestra o fija dónde vive `docs/` |
 | `specboot doc add <archivo> [--front <nombre>]` / `remove <archivo>` / `list` | Registra un documento de arquitectura |
 | `specboot mode [greenfield\|brownfield]` | Muestra o cambia el modo |
 | `specboot detect [--json] [--write]` | Detecta el stack |
-| `specboot map [--accept]` | Regenera el inventario, crea plantillas, sincroniza `checks.json` y actualiza exclude y hook; `--accept` acepta las versiones actuales de skills y documentos |
+| `specboot map [--accept]` | Regenera el inventario, crea plantillas, sincroniza `checks.json` y actualiza exclude, hook y regla de Cursor; `--accept` acepta las versiones actuales de skills y documentos |
 | `specboot check [--list] [--strict]` | Ejecuta `checks.json` |
 | `specboot sync [-m <mensaje>]` | Confirma tu trabajo, trae el del equipo y sube |
 | `specboot pull` | Trae el trabajo del equipo sin subir |

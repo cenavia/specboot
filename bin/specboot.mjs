@@ -370,6 +370,33 @@ When the project root contains an \`openspec/\` folder (it may be a symlink), lo
 - **caveman** may shorten ordinary chat; never shorten \`specboot-start\` gates, \`specboot doctor\`, quality-gate evidence (\`adversarial-review\`, \`judgment-day\`, \`specboot check\`), or PR/commit bodies.
 - Skip the pack for one install with \`SPECBOOT_SKIP_EFFICIENCY=1\`.`;
 
+// Cursor keeps User Rules in its own settings, not in a file, so the global rule cannot be written there.
+// Instead each project gets an always-applied project rule. It lives under .cursor/, which the exclude and
+// the pre-commit guard already keep out of the client repository.
+const CURSOR_RULE_MARK = 'specboot:managed';
+const cursorRuleFile = (info) => path.join(info.root, '.cursor', 'rules', 'specboot.mdc');
+const cursorRuleText = () => `---
+description: specboot harness rule (managed by specboot; rewritten by specboot link and map)
+alwaysApply: true
+---
+<!-- ${CURSOR_RULE_MARK}: edit the harness, not this file -->
+${GLOBAL_RULE}
+`;
+function cursorRuleState(info) {
+  const cur = read(cursorRuleFile(info));
+  if (!cur) return 'missing';
+  if (!cur.includes(CURSOR_RULE_MARK)) return 'foreign';
+  return cur === cursorRuleText() ? 'current' : 'outdated';
+}
+function ensureCursorRule(info, quiet = false) {
+  const state = cursorRuleState(info);
+  if (state === 'current') return;
+  if (state === 'foreign') { if (!quiet) warn(`${cursorRuleFile(info)} exists and is not managed by specboot; Cursor rule not written`); return; }
+  mkdirp(path.dirname(cursorRuleFile(info)));
+  fs.writeFileSync(cursorRuleFile(info), cursorRuleText());
+  if (!quiet) ok('Cursor rule written to .cursor/rules/specboot.mdc (local, never pushed)');
+}
+
 function generateOpenspecSkills() {
   if (tryRun(OPENSPEC, ['--version']) === null) {
     warn('openspec CLI not found; skipped generating openspec-* skills (npm install -g @fission-ai/openspec@latest, then re-run install).');
@@ -515,7 +542,9 @@ function cmdInstall(args = []) {
   issues.slice(0, 20).forEach(warn);
   if (issues.length > 20) warn(`... and ${issues.length - 20} more skill issues`);
   for (const f of instructionFiles()) { upsertBlock(f, MARK.start, MARK.end, GLOBAL_RULE); ok(`global rule written to ${f}`); }
-  log('\nCursor: paste this once in Settings > Rules > User Rules:\n');
+  log('\nCursor: nothing to paste. specboot init, link and map write the rule to .cursor/rules/specboot.mdc in each');
+  log('project (ignored by git). Run `specboot link` in projects set up before 0.7.3.');
+  log('Optional, only to apply it outside specboot projects: paste this in Cursor Settings > Rules > User Rules:\n');
   log(GLOBAL_RULE.replace('## specboot\n', '') + '\n');
 }
 
@@ -639,6 +668,7 @@ function refreshGuards(info, client) {
   const priv = isPrivate(loadFronts(client).docs);
   ensureExclude(info, priv, true);
   ensureHook(info, priv, true);
+  ensureCursorRule(info, true);
 }
 
 // What the guards of this clone are missing compared with the current lists.
@@ -737,6 +767,7 @@ function cmdInit(args) {
   const placement = loadFronts(client).docs;
   ensureExclude(info, isPrivate(placement));
   ensureHook(info, isPrivate(placement));
+  ensureCursorRule(info);
   if (placement) applyDocsPlacement(info, client, placement);
   const fr = loadFronts(client);
   if (writeStackConfig(path.join(storeDir(client), 'openspec', 'config.yaml'), stack, fr)) {
@@ -839,7 +870,7 @@ function cmdLink() {
   const placement = loadFronts(client).docs;
   if (isPrivate(placement)) applyDocsPlacement(info, client, placement, true);
   refreshGuards(info, client);
-  ok('exclude and pre-commit guard refreshed');
+  ok('exclude, pre-commit guard and Cursor rule refreshed');
 }
 
 // ---- docs/ kept local: a real folder in the client project, ignored by git, backed up to the store.
@@ -1606,6 +1637,10 @@ function cmdDoctor(args = []) {
   else if (gaps.hook === 'missing') fail('pre-commit guard missing (run: specboot link)');
   else if (gaps.hook === 'outdated') fail('pre-commit guard is outdated: it does not block every private path (run: specboot link)');
   else ok('pre-commit guard installed and current');
+  const cr = cursorRuleState(info);
+  if (cr === 'current') ok('Cursor rule present (.cursor/rules/specboot.mdc)');
+  else if (cr === 'foreign') warn('.cursor/rules/specboot.mdc exists but is not managed by specboot; Cursor does not get the specboot rule');
+  else warn(`Cursor rule ${cr === 'missing' ? 'missing' : 'outdated'} (run: specboot link)`);
   const guarded = excl.split('\n').includes('/docs') && (tryGit(info.root, 'config', '--get', 'core.hooksPath') || read(path.join(info.common, 'hooks', 'pre-commit')).includes('docs(/|$)'));
   if (placement === 'local') {
     const d = path.join(info.root, 'docs'); const main = mainRoot(info);
@@ -1691,7 +1726,8 @@ Project (inside the client repository):
   specboot init <client> [--remote <git-url>] [--fronts <file.json>] [--new | --existing]
                          [--docs local|client|store] [--gitignore]
                                 create/clone the private spec store, link openspec/, hide AI paths, install guard
-  specboot link                 recreate the openspec/ (and private docs/) links in a new git worktree
+  specboot link                 recreate the openspec/ (and private docs/) links in a new git worktree; refresh the
+                                exclude, the pre-commit guard and the Cursor rule (.cursor/rules/specboot.mdc)
   specboot docs [local|client|store]
                                 where docs/ (planning, architecture, ADRs) lives: local and ignored (default),
                                 versioned in the client repository, or a link to the private store
