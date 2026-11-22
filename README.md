@@ -7,7 +7,9 @@ Arnés global para trabajar con OpenSpec en Claude Code, Cursor, Codex y opencod
 - El repositorio del cliente solo recibe código. Un `exclude` local y un hook `pre-commit` lo protegen.
 - Sirve para proyectos existentes (los estándares se observan del código) y nuevos (se prescriben desde tus documentos y skills).
 
-Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboarding del equipo en un proyecto **ya existente** (dónde empezar: máquina vs repo cliente): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**. Este README explica cómo funciona. Para pasar un proyecto de OpenSpec 1.x a 2.x con perfil extendido: **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
+Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboarding del equipo en un proyecto **ya existente** (dónde empezar: máquina vs repo cliente, y **qué tag usar**): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**. Este README explica cómo funciona. Para pasar un proyecto de OpenSpec 1.x a 2.x con perfil extendido: **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
+
+**Versiones:** instala por tag — [`v0.7.0`](https://github.com/cenavia/specboot/releases/tag/v0.7.0) (actual) o [`v0.6.1`](https://github.com/cenavia/specboot/releases/tag/v0.6.1) (anterior). Ejemplo: `git clone https://github.com/cenavia/specboot.git ~/.specboot && cd ~/.specboot && git checkout v0.7.0 && npm link && specboot install`.
 
 ## Requisitos
 

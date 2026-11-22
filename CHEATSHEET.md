@@ -34,32 +34,40 @@ Cada `SKILL.md` necesita `name:` y `description:` en su encabezado. De un plugin
 
 ## 2. Instalación (una vez por máquina)
 
+Instala por **tag** ([releases](https://github.com/cenavia/specboot/releases)): **`v0.7.0`** (actual) o **`v0.6.1`** (estable anterior). Detalle: [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md).
+
 ```bash
 # 1. Requisitos
 node --version                                  # 20.19 o superior
 npm install -g @fission-ai/openspec@latest
 
-# 2. El arnés
-git clone <url-del-arnés> ~/.specboot
-cd ~/.specboot && npm link                      # deja disponible el comando `specboot`
+# 2. El arnés en la versión acordada
+git clone https://github.com/cenavia/specboot.git ~/.specboot
+cd ~/.specboot
+git checkout v0.7.0                             # o: git checkout v0.6.1
+npm link                                        # comando global `specboot`
+
+# Cambiar de versión más tarde:
+#   cd ~/.specboot && git fetch --tags && git checkout v0.7.0 && npm link && specboot install
 
 # 3. Tus skills
 specboot source add ~/code/agents/plugins       # la carpeta que contiene tus skills
 specboot source list
 
-# 4. Enlazar todo para los cuatro agentes (+ efficiency pack: ponytail, caveman, codegraph, rtk, headroom)
+# 4. Enlazar agentes (en v0.7.0+ también efficiency pack: ponytail, caveman, codegraph, rtk, headroom)
 specboot install
-# macOS/Linux → scripts bash; Windows → PowerShell (winget/npm/install.ps1; no hace falta Git Bash)
-# Saltar solo el pack: SPECBOOT_SKIP_EFFICIENCY=1 specboot install
+# macOS/Linux → bash; Windows → PowerShell (no hace falta Git Bash)
+# Saltar solo el pack (0.7+): SPECBOOT_SKIP_EFFICIENCY=1 specboot install
 
 # 5. Verificar
 specboot doctor
-# Por cada repo cliente (opcional pero recomendado): codegraph init
+git -C ~/.specboot describe --tags --always     # confirma el tag activo
+# Por cada repo cliente (0.7+, opcional): codegraph init
 ```
 
 Después, en Cursor: Settings → Rules → User Rules, y pega el texto que `specboot install` mostró al final.
 
-Repite `specboot install` cada vez que actualices OpenSpec, el arnés o tus skills.
+Repite `specboot install` cada vez que cambies de tag, actualices OpenSpec o tus skills.
 
 ## 3. Flujo greenfield (proyecto nuevo)
 
@@ -255,14 +263,23 @@ Opciones de `init`: `--remote <url>`, `--fronts <archivo>`, `--new`, `--existing
 
 ## 10. Compartir con el equipo
 
-Tú, una vez:
+Cada compañero instala el **mismo tag** del arnés (`v0.7.0` o el que acuerden):
+
+```bash
+git clone https://github.com/cenavia/specboot.git ~/.specboot
+cd ~/.specboot && git checkout v0.7.0 && npm link
+specboot source add <ruta-skills-del-equipo>
+specboot install && specboot doctor
+```
+
+Tú, una vez (store de specs del cliente):
 
 ```bash
 git -C ~/.specboot-data/stores/<cliente> remote add origin <url-privada>
 specboot sync
 ```
 
-Cada compañero, una vez: instala el arnés, clona tu repositorio de skills, `specboot source add` e `install`, y en su clon del repositorio del cliente:
+En el clon del repositorio del cliente:
 
 ```bash
 specboot init <cliente> --remote <url-privada>

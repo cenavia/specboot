@@ -17,32 +17,44 @@ Cómo dejar SpecBoot listo en tu máquina y engancharlo a un **proyecto cliente 
 2. Entras al proyecto existente (Fase B) y ejecutas `specboot init`.
 
 ```text
-[ terminal / home ]     clone o npm link del arnés → source add → specboot install → doctor
+[ terminal / home ]     clone → checkout TAG → npm link → source add → install → doctor
            ↓
 [ repo del cliente ]    cd proyecto-existente → specboot init → doctor → skill specboot-map
 ```
+
+### Versiones en GitHub
+
+Instala **siempre por tag**, no a ciegas desde `main` sin saber qué release es.
+
+| Tag | Cuándo usarla | Release |
+|-----|---------------|---------|
+| **`v0.7.0`** (recomendada) | Efficiency pack, cableado OpenSpec 2 extendido, skills de entrega, esta guía | [v0.7.0](https://github.com/cenavia/specboot/releases/tag/v0.7.0) |
+| **`v0.6.1`** | Solo si el equipo debe quedarse en la estable anterior (sin efficiency pack / wiring 0.7) | [v0.6.1](https://github.com/cenavia/specboot/releases/tag/v0.6.1) |
+
+Repo: `https://github.com/cenavia/specboot.git`
 
 ---
 
 ## Quick path (proyecto existente, Mac/Linux)
 
-Sustituye URLs y rutas por las de tu equipo.
+Sustituye `<TAG>`, skills y URLs del store por lo que acuerde el equipo. Para casi todos: `<TAG>=v0.7.0`.
 
 ```bash
 # ——— FASE A (máquina; fuera del cliente) ———
 node --version                                          # >= 20.19
 npm install -g @fission-ai/openspec@latest
 
-# Opción recomendada para el equipo: clone canónico
-git clone <url-privada-specboot> ~/.specboot
-cd ~/.specboot && npm link
+# Clone canónico + versión concreta
+git clone https://github.com/cenavia/specboot.git ~/.specboot
+cd ~/.specboot
+git checkout v0.7.0                                     # o: git checkout v0.6.1
+npm link
 
-# Si desarrollas el arnés en otro path (ej. Documents/projects/specboot):
-#   cd /ruta/a/specboot && npm link
-# (mismo efecto: comando `specboot` global; no uses el repo del cliente)
+# Mantenedores con clone de desarrollo:
+#   cd /ruta/a/specboot && git checkout v0.7.0 && npm link
 
 specboot source add <ruta-a-tu-carpeta-de-skills>       # la que el equipo acuerde
-specboot install                                        # enlaza skills + efficiency pack
+specboot install                                        # enlaza skills (+ efficiency pack en 0.7+)
 specboot doctor                                         # sin proyecto: valida máquina
 
 # ——— FASE B (dentro del proyecto existente) ———
@@ -74,16 +86,32 @@ En **Cursor**, tras `install`: Settings → Rules → User Rules → pega el blo
 
 | Opción | Cuándo | Comandos |
 |--------|--------|----------|
-| **`~/.specboot` (recomendada para el equipo)** | Uso diario; path estable; coincide con la cheatsheet | `git clone <url> ~/.specboot && cd ~/.specboot && npm link` |
-| **Clone de desarrollo** (otro path) | Mantenedores del arnés | `cd <tu-clone> && npm link` — el comando queda global igual |
-| **Dentro del repo del cliente** | **No** | Contamina el mental model y no aporta nada: el arnés no vive en el cliente |
+| **`~/.specboot` + tag (recomendada)** | Todo el equipo | `git clone … ~/.specboot && cd ~/.specboot && git checkout v0.7.0 && npm link` |
+| **Clone de desarrollo** (otro path) | Mantenedores | Mismo `git checkout <tag>` + `npm link` |
+| **Dentro del repo del cliente** | **No** | El arnés no vive en el cliente |
 
-Tras `npm link`, `specboot` debe resolverse en cualquier directorio:
+Tras `npm link`, comprueba comando y versión del checkout:
 
 ```bash
 which specboot
-specboot --help    # o el subcomando que documente tu versión
+cd ~/.specboot && git describe --tags --always && node -p "require('./package.json').version"
+# esperable en la release actual: v0.7.0  y  0.7.0
 ```
+
+### Cambiar de versión (misma máquina)
+
+Cuando el equipo acuerda subir o bajar de tag:
+
+```bash
+cd ~/.specboot
+git fetch --tags
+git checkout v0.7.0          # o v0.6.1
+npm link                     # por si el link se rompió
+specboot install             # obligatorio: re-enlaza skills/reglas desde ESE arnés
+specboot doctor
+```
+
+`~/.specboot-data` se reutiliza entre versiones. No hace falta borrar stores al cambiar de tag.
 
 ### Skills del equipo
 
@@ -98,7 +126,7 @@ Cada skill válida tiene un `SKILL.md` con `name:` y `description:`.
 
 ### `specboot install` (global)
 
-Desde **cualquier** cwd (idealmente desde `~/.specboot` tras el link):
+Desde **cualquier** cwd (idealmente justo después de `git checkout <tag>` + `npm link`):
 
 ```bash
 specboot install
@@ -109,20 +137,22 @@ Hace, entre otras cosas:
 - Genera skills `openspec-*` según el perfil OpenSpec instalado
 - Enlaza skills del arnés + sources a Claude / Cursor / Codex / opencode
 - Escribe o actualiza reglas globales de agentes
-- **Siempre** corre el **efficiency pack** (ponytail, caveman, codegraph, rtk, headroom), salvo:
+- En **`v0.7.0+`**, **siempre** corre el **efficiency pack** (ponytail, caveman, codegraph, rtk, headroom), salvo:
 
 ```bash
 SPECBOOT_SKIP_EFFICIENCY=1 specboot install
 ```
 
-| Plataforma | Cómo corre el pack |
-|------------|--------------------|
+En **`v0.6.1`** no existe ese pack: `install` solo enlaza skills y reglas.
+
+| Plataforma (0.7+) | Cómo corre el pack |
+|-------------------|--------------------|
 | macOS / Linux | `scripts/efficiency/install-all.sh` (bash) |
 | Windows | `scripts/efficiency/install-all.ps1` (PowerShell) |
 
-Si un instalador pide confirmación en TTY, **confirma** y el pack sigue. Los wires principales van en modo no interactivo para no colgar en CI/redirigidos.
+Si un instalador pide confirmación en TTY, **confirma** y el pack sigue.
 
-Repite `specboot install` cuando actualices OpenSpec, el arnés o las skills del equipo.
+Repite `specboot install` cuando cambies de tag, actualices OpenSpec o las skills del equipo.
 
 ### Verificar la máquina
 
@@ -217,9 +247,10 @@ Si el exclude solo era local y el compañero ve `openspec/` sin ignorar: el lead
 ### Máquina
 
 - [ ] Node ≥ 20.19 y OpenSpec global
-- [ ] Arnés en `~/.specboot` (o clone de dev) + `npm link`
+- [ ] Arnés en `~/.specboot` (o clone de dev) en el **tag acordado** (`v0.7.0` o `v0.6.1`) + `npm link`
+- [ ] `git describe --tags` / `package.json` coinciden con ese tag
 - [ ] `specboot source add` a la carpeta de skills del equipo
-- [ ] `specboot install` terminó (incl. efficiency pack o skip explícito)
+- [ ] `specboot install` terminó (en 0.7+: efficiency pack o `SPECBOOT_SKIP_EFFICIENCY=1`)
 - [ ] Regla de Cursor pegada si usas Cursor
 - [ ] `specboot doctor` OK a nivel máquina
 

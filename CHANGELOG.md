@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Docs:** instalación por tag (`v0.7.0` / `v0.6.1`) en README, CHEATSHEET y `GUIA-INSTALACION-EQUIPO.md` (checkout + `npm link` + `install` al cambiar de versión).
+
 ## 0.7.0
 
 - **Núcleo de entrega:** las skills `work-unit-commits`, `chained-pr` y `branch-pr` (portables, Apache-2.0) pasan a vivir en `skills/` del arnés y forman parte del ciclo en `specboot-start`, CHEATSHEET y README. Un `specboot install` las enlaza a todos los agentes sin un repo de skills aparte.
