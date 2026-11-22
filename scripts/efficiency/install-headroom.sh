@@ -43,3 +43,5 @@ if have headroom; then
     eff_warn "headroom present; MCP not auto-wired — run: headroom mcp install  (or configure absolute path to 'headroom mcp serve')"
   fi
 fi
+
+eff_exit

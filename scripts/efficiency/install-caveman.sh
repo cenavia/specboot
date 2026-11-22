@@ -39,8 +39,9 @@ EOF
 eff_ok "efficiency skill ready: caveman"
 
 if have npx && have node; then
-  node_major="$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)"
-  if [[ "${node_major}" -ge 22 ]]; then
+  node_ver="$(node -p "process.versions.node" 2>/dev/null || echo 0.0.0)"
+  node_major="${node_ver%%.*}"; node_minor="${node_ver#*.}"; node_minor="${node_minor%%.*}"
+  if [[ "${node_major}" -gt 22 || ( "${node_major}" -eq 22 && "${node_minor}" -ge 13 ) ]]; then
     if npx --yes @caveman-ai/cli@latest </dev/null >/dev/null 2>&1; then
       eff_ok "caveman CLI installer invoked (confirm agent wiring if prompted interactively)"
     else
@@ -51,8 +52,10 @@ if have npx && have node; then
       fi
     fi
   else
-    eff_warn "caveman CLI wants Node 22.13+ (found ${node_major}); SpecBoot skill still linked"
+    eff_warn "caveman CLI wants Node 22.13+ (found ${node_ver}); SpecBoot skill still linked"
   fi
 else
   eff_warn "npx/node missing; SpecBoot caveman skill only"
 fi
+
+eff_exit

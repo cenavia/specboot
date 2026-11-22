@@ -44,3 +44,9 @@ eff_write_skill() {
   printf '%s\n' "$body" >"${dir}/SKILL.md"
   eff_ok "efficiency skill ready: ${name}"
 }
+
+# End a child installer: exit 1 when any eff_fail was reported, so install-all.sh can tell.
+eff_exit() {
+  if [[ "${EFF_FAIL}" -gt 0 ]]; then exit 1; fi
+  exit 0
+}

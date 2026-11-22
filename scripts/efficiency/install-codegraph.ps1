@@ -5,24 +5,19 @@ $ErrorActionPreference = 'Continue'
 Eff-Log 'efficiency: codegraph'
 
 if (-not (Eff-Have 'codegraph')) {
-  $installed = $false
   if (Eff-Have 'npm') {
-    try {
-      & npm install -g @colbymchenry/codegraph 2>$null | Out-Null
-      if (Eff-Have 'codegraph') {
-        Eff-Ok 'codegraph installed via npm -g'
-        $installed = $true
-      }
-    } catch {
+    if ((Eff-RunQuiet 'npm' @('install', '-g', '@colbymchenry/codegraph')) -and (Eff-Have 'codegraph')) {
+      Eff-Ok 'codegraph installed via npm -g'
+    } else {
       Eff-Warn 'npm install -g @colbymchenry/codegraph failed; trying install.ps1'
     }
   }
-  if (-not $installed) {
+  if (-not (Eff-Have 'codegraph')) {
     try {
-      Invoke-RestMethod https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.ps1 | Invoke-Expression
+      Invoke-RestMethod -UseBasicParsing https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.ps1 -ErrorAction Stop | Invoke-Expression
+      Eff-RefreshPath
       if (Eff-Have 'codegraph') {
         Eff-Ok 'codegraph installed via install.ps1'
-        $installed = $true
       } else {
         Eff-Fail 'codegraph install.ps1 ran but binary not on PATH (open a new shell)'
       }
@@ -37,28 +32,29 @@ if (-not (Eff-Have 'codegraph')) {
 }
 
 if (Eff-Have 'codegraph') {
-  # -y = non-interactive. Keep host stdio so interactive confirm is visible and can advance.
+  # -y = non-interactive. Keep host stdio so an interactive confirm is visible and can advance.
   $wired = $false
-  try {
-    & codegraph install -y
-    if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw "exit $LASTEXITCODE" }
+  $global:LASTEXITCODE = 0
+  & codegraph install -y
+  if ($LASTEXITCODE -eq 0) {
     $wired = $true
     Eff-Ok 'codegraph install -y (MCP wired globally for auto-detected agents)'
-  } catch {
+  } else {
     $canPrompt = [Environment]::UserInteractive -and -not [Console]::IsInputRedirected
     if ($canPrompt) {
-      Eff-Warn 'non-interactive codegraph install failed — confirm prompts to continue'
-      try {
-        & codegraph install
-        if (-not ($LASTEXITCODE -and $LASTEXITCODE -ne 0)) {
-          $wired = $true
-          Eff-Ok 'codegraph install (interactive confirm)'
-        }
-      } catch { }
+      Eff-Warn 'non-interactive codegraph install failed - confirm prompts to continue'
+      $global:LASTEXITCODE = 0
+      & codegraph install
+      if ($LASTEXITCODE -eq 0) {
+        $wired = $true
+        Eff-Ok 'codegraph install (interactive confirm)'
+      }
     }
   }
   if (-not $wired) {
-    Eff-Warn "codegraph CLI present but install failed — run: codegraph install -y"
+    Eff-Warn 'codegraph CLI present but install failed - run: codegraph install -y'
   }
   Eff-Warn 'per project: cd <repo>; codegraph init  (keep .codegraph/ out of client git)'
 }
+
+Eff-Exit

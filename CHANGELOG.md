@@ -1,8 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.7.1
 
-- **Docs:** instalación por tag (`v0.7.0` / `v0.6.1`) en README, CHEATSHEET y `GUIA-INSTALACION-EQUIPO.md` (checkout + `npm link` + `install` al cambiar de versión).
+Correcciones del efficiency pack, sobre todo en Windows. Para actualizar: `git fetch --tags && git checkout v0.7.1 && npm link && specboot install`.
+
+- **Fix (Windows): scripts que no arrancaban en PowerShell 5.1.** `install-codegraph.ps1`, `install-rtk.ps1` e `install-headroom.ps1` tenían un guion largo (`—`) dentro de cadenas con comillas dobles. PowerShell 5.1 lee los `.ps1` sin BOM como Windows-1252 y uno de esos bytes se convierte en una comilla, así que el script no se podía analizar y codegraph, rtk y headroom no se instalaban. Todos los `.ps1` del pack son ahora ASCII puro.
+- **Fix (Windows): `SKILL.md` con BOM.** `Set-Content -Encoding utf8` añade BOM en 5.1 y el frontmatter dejaba de empezar por `---`. `Eff-WriteSkill` escribe UTF-8 sin BOM, y `specboot` ignora un BOM al leer el nombre de cualquier skill.
+- **Fix (Windows): éxito falso y posible cuelgue.** Los comandos nativos no lanzan excepción con código de salida distinto de 0, así que los `try/catch` informaban `ok` aunque fallaran. Ahora se comprueba `$LASTEXITCODE` (`Eff-RunQuiet`). El instalador de caveman corre con stdin desde `NUL` (`Eff-RunNoInput`) para no quedarse esperando una pregunta invisible. Se refresca el PATH tras instalar codegraph, rtk y headroom.
+- **Fix: códigos de salida.** Cada instalador (bash y PowerShell) sale con 1 si reportó `FAIL`, y `install-all.sh` informa el código real (antes siempre decía «exited 0»).
+- **Fix: `doctor` comprueba rtk con `rtk gain`**, igual que el instalador, para no aceptar otro programa llamado `rtk`.
+- **Fix: caveman exige Node 22.13+** de verdad (antes solo comprobaba la versión mayor 22).
 
 ## 0.7.0
 
