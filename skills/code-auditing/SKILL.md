@@ -1,6 +1,6 @@
 ---
 name: code-auditing
-description: Task-focused project skill.
+description: Use when the user asks for a code audit, a security or code-quality audit, a technical-debt or dependency review, or a pre-release review, and in the OpenSpec quality gate when a change touches a high-risk surface (auth, payments, PII, security, irreversible data).
 version: 1.0.0
 ---
 # Code Auditing Skill

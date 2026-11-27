@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.4
+
+Los comandos de OpenSpec disparan solos las skills del arnés. Para actualizar: `git fetch --tags && git checkout v0.7.4 && npm link && specboot install`.
+
+- **Bindings dentro de las skills `openspec-*`.** `install` escribe en cada skill generada una sección `## specboot bindings` con lo que va antes, durante y después (por ejemplo, `openspec-verify-change` continúa con `specboot check` → `adversarial-review` → `judgment-day`, y `openspec-archive-change` exige el gate aprobado y termina con `specboot sync`). Al estar en la skill misma, aplica igual en Claude Code, Cursor, Codex y opencode, aunque el comando se invoque directamente. Solo actúa en proyectos con `openspec/standards/`.
+- **Quality gate: qué hacer cuando un paso falla.** `specboot-start` §5c indica a qué paso volver según dónde va el arreglo (código, artefactos OpenSpec o documentación).
+- **`config.yaml`:** la guía de `archive` ahora exige también `judgment-day` en `APPROVED` (se aplica con `specboot detect --write` o `specboot map`).
+- **Fix:** `update-docs` apuntaba a un archivo que el arnés no crea; `code-auditing` no tenía descripción que la activara; referencias a `ai-specs/` de otro proyecto; fila `apply` del cheatsheet sin `ponytail`.
+
 ## 0.7.3
 
 Regla de Cursor sin pasos manuales. Para actualizar: `git fetch --tags && git checkout v0.7.3 && npm link && specboot install`, y en cada proyecto `specboot link`.

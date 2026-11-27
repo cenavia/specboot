@@ -48,7 +48,7 @@ Order of authority, highest first:
 
 If a standards document disagrees with an architecture document and no override explains it, the standards are stale: follow the document, tell the user, and suggest rerunning the mapping skill. If you believe a project convention is harmful, say so to the user; do not silently deviate.
 
-## 2c. Size the request before choosing a path
+## 2a. Size the request before choosing a path
 
 | The request is | Path |
 |----------------|------|
@@ -81,6 +81,8 @@ When a backlog exists in `docs/planning/backlog.md`, take work from it in priori
 Use the OpenSpec skills for every step. Do not improvise the artifacts.
 
 **Binding rule:** when the user (or you) invokes an OpenSpec command / skill, also load every **harness skill** marked **must** for that command. Load **when** skills only if their condition holds. Do not run the OpenSpec skill alone when the table names SpecBoot skills.
+
+`specboot install` writes the same bindings into each generated `openspec-*` skill, under `## specboot bindings`, so they apply even when a command is invoked directly. This table is the reference; if the two ever disagree, re-run `specboot install`.
 
 Detect the OpenSpec profile once per session:
 
@@ -120,7 +122,7 @@ openspec config get workflows
 | `explain` | Teach concepts behind a question | Orthogonal — never blocks OpenSpec |
 | `meta-prompt` | Rewrite prompts | Orthogonal — harness/meta |
 | `writing-skills` | Author/improve skills | Orthogonal — harness/meta |
-| `sync-agent-symlinks` | Sync skill symlinks across agents | Orthogonal — after skill install changes |
+| `sync-agent-symlinks` | Sync project-local skill symlinks across agents | Orthogonal — only in projects with their own `ai-specs/skills` folder; harness skills are linked by `specboot install` |
 
 ### 5b. Command → skills bindings
 
@@ -147,7 +149,7 @@ Core has no `verify` command → §5c is still **mandatory before every archive*
 | `ff` / `opsx ff` | `openspec-ff-change` | Same pre-steps as `propose`. |
 | **`verify` / `opsx verify`** | **`openspec-verify-change`** | **must:** full quality gate §5c (named verify entry). **when** user asks demo after green gate: `show-spec-working`. |
 | `bulk-archive` / `opsx bulk-archive` | `openspec-bulk-archive-change` | **must:** §5c per change (or confirm batch scope). Then bulk archive; then `specboot sync`. |
-| `onboard` / `opsx onboard` | `openspec-onboard` | **must:** `specboot-start` first so gates/standards still apply; then follow §5b for each step of the onboarded change. |
+| `onboard` / `opsx onboard` | `openspec-onboard` | **must:** `specboot-start` first so gates/standards still apply; then follow §5b for each step of the onboarded change. Onboard walks every phase inline, so apply the bindings of `propose` and `apply` at their phases and run §5c before its archive phase. |
 
 Propose paths in extended: `propose` **or** `new`→`continue`… **or** `ff`. One path per change.
 
@@ -170,6 +172,18 @@ Run **in this order**. Do not archive until the gate completes:
 6. **`judgment-day`** — juicio final; dual blind review; terminal `APPROVED` or `ESCALATED`. Do not archive on `ESCALATED` without an explicit human decision.
 
 Announce at the start: active profile (core/extended), and that `adversarial-review` + `judgment-day` are both required.
+
+**When a step fails.** Route the finding by where its fix belongs, then come back to the gate:
+
+| The fix belongs in | Go back to | Then re-run the gate from |
+|--------------------|------------|---------------------------|
+| Code or tests | `openspec-apply-change` (fix, then `specboot check`) | The step that failed |
+| OpenSpec artifacts (proposal, specs or tasks are wrong or incomplete) | `openspec-update-change`, then `openspec-apply-change` | Step 1 |
+| Documentation only | `update-docs` | The step that failed |
+
+- A fix that changes behavior beyond the finding (new files, a changed public name, a new dependency) restarts the gate from step 1.
+- Steps that already passed are not repeated otherwise.
+- `judgment-day` owns its own budget (two fix rounds); never extend it. Outside `judgment-day`, if the same step fails twice on the same finding, stop and ask the user.
 
 ### Standards refresh before archive
 

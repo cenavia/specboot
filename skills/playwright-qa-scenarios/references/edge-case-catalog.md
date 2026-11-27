@@ -4,7 +4,7 @@ Use after the constraint matrix exists. For each control present in the UI, appl
 
 **Playwright practice:** After picking cases, assign Test layer + Mock policy per `playwright-skill` (`test-architecture.md`, `when-to-mock.md`). Prefer Minitest for validation permutations and server-level checks for error codes; keep E2E thin.
 
-Guides live under `ai-specs/skills/playwright-skill/core/` unless noted.
+Guides live under `core/` in the folder of the `playwright-skill` skill unless noted.
 
 ## Date / date of birth
 

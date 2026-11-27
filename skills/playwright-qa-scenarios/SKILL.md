@@ -54,7 +54,7 @@ QA Scenario Progress:
 
 ### 0. Playwright practice gate
 
-Apply the `playwright-skill` Golden Rules (role locators, no `waitForTimeout`, web-first assertions, isolated tests, `baseURL`, fixtures, one behavior per test, mock policy). Guides live under `ai-specs/skills/playwright-skill/`:
+Apply the `playwright-skill` Golden Rules (role locators, no `waitForTimeout`, web-first assertions, isolated tests, `baseURL`, fixtures, one behavior per test, mock policy). Guides live in the folder of the `playwright-skill` skill:
 
 | Feature shape | Load |
 |---------------|------|
