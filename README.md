@@ -1,22 +1,35 @@
 # specboot
 
-Arnés global para trabajar con OpenSpec en Claude Code, Cursor, Codex y opencode sin dejar nada de IA en el repositorio del cliente.
+[![release](https://img.shields.io/github/v/release/cenavia/specboot)](https://github.com/cenavia/specboot/releases/latest)
+![license](https://img.shields.io/badge/license-MIT-blue)
+![node](https://img.shields.io/badge/node-%E2%89%A520.19-339933)
+![agents](https://img.shields.io/badge/agents-Claude%20Code%20%7C%20Cursor%20%7C%20Codex%20%7C%20opencode-555)
+
+**Arnés global de OpenSpec para agentes de IA que no deja nada de IA en el repositorio del cliente.**
 
 - Las skills viven en tu máquina, no en el proyecto.
 - Las specs y los estándares viven en un repositorio git privado tuyo (el *store*), enlazado al proyecto como `openspec/`.
 - El repositorio del cliente solo recibe código. Un `exclude` local y un hook `pre-commit` lo protegen.
-- Sirve para proyectos existentes (los estándares se observan del código) y nuevos (se prescriben desde tus documentos y skills).
 
-Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboarding del equipo en un proyecto **ya existente** (dónde empezar: máquina vs repo cliente, y **qué tag usar**): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**. Este README explica cómo funciona. Para pasar un proyecto de OpenSpec 1.x a 2.x con perfil extendido: **[UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md)**.
+## Por qué specboot
 
-**Versiones:** instala por tag — [`v0.7.4`](https://github.com/cenavia/specboot/releases/tag/v0.7.4) (actual; los comandos OpenSpec disparan las skills del arnés), [`v0.7.3`](https://github.com/cenavia/specboot/releases/tag/v0.7.3), [`v0.7.2`](https://github.com/cenavia/specboot/releases/tag/v0.7.2), [`v0.7.1`](https://github.com/cenavia/specboot/releases/tag/v0.7.1), [`v0.7.0`](https://github.com/cenavia/specboot/releases/tag/v0.7.0) o [`v0.6.1`](https://github.com/cenavia/specboot/releases/tag/v0.6.1) (anterior). Ejemplo: `git clone https://github.com/cenavia/specboot.git ~/.specboot && cd ~/.specboot && git checkout v0.7.4 && npm link && specboot install`.
+Trabajar con agentes y desarrollo guiado por specs suele llenar el repositorio de `CLAUDE.md`, `.cursor/`, `openspec/` y skills copiadas. En un proyecto de cliente eso no siempre es aceptable, y cada repositorio termina con su propia versión de las reglas.
 
-## Requisitos
+specboot separa las tres cosas: las **skills** se instalan una vez por máquina, las **specs y estándares** van a un store privado por cliente y el **código** va al repositorio del cliente. Los cuatro agentes leen las mismas skills, y cada comando de OpenSpec dispara solo las skills de proceso que le corresponden: planificación, diff mínimo, commits revisables y quality gate.
 
-- Node.js 20.19 o superior y git
-- OpenSpec: `npm install -g @fission-ai/openspec@latest`
+Sirve para proyectos existentes, donde los estándares se observan del código, y para proyectos nuevos, donde se prescriben desde tus documentos y skills.
 
-## Piezas
+## Cómo funciona
+
+```
+ Tu máquina                          Store privado (git)              Repositorio del cliente
+ ──────────                          ───────────────────              ───────────────────────
+ ~/.specboot/        (arnés)         ~/.specboot-data/stores/<cliente>/
+   skills, CLI, plantillas             openspec/                 ◄──── openspec   (enlace, oculto a git)
+ ~/.claude/skills ┐                      specs/, changes/              docs/      (oculta a git por defecto)
+ ~/.agents/skills ┘ enlaces              standards/                    código     (lo único que se versiona)
+ regla global de cada agente           docs/ (respaldo)
+```
 
 | Pieza | Dónde vive | Qué es |
 |-------|-----------|--------|
@@ -26,184 +39,102 @@ Para instalar y usar paso a paso, ve a **[CHEATSHEET.md](CHEATSHEET.md)**. Onboa
 | Store de un cliente | `~/.specboot-data/stores/<cliente>/` | Repositorio git privado con `openspec/` y la copia de respaldo de `docs/` |
 | Proyecto | Repositorio del cliente | Código, el enlace `openspec` y la carpeta `docs/`, ambos ocultos a git |
 
-## Orden de autoridad
+## Requisitos
 
-De mayor a menor. Todo el arnés sigue este orden:
+- Node.js 20.19 o superior y git
+- OpenSpec: `npm install -g @fission-ai/openspec@latest`
+- Al menos un agente: Claude Code, Cursor, Codex u opencode
 
-1. Reglas de agentes que el cliente ya versiona en su repositorio.
-2. Tus documentos de arquitectura, corregidos por `overrides.md`.
-3. Decisiones registradas en `decisions.md` y `fronts.json`.
-4. El código, en un proyecto existente; las skills base de cada frente, en uno nuevo.
-5. Skills genéricas de tecnología.
+## Instalación
 
-## Estándares del proyecto
-
-Viven en `openspec/standards/` (dentro del store) y son lo que cada cambio debe seguir.
-
-| Archivo | Contenido | Quién lo escribe |
-|---------|-----------|------------------|
-| `project-facts.md` | Inventario: modo, frentes, documentos, overrides, checks, carpetas | `specboot map` (se regenera) |
-| `fronts.json` | Modo, ubicación de `docs/`, frentes con skills, decisiones y checks | Tú |
-| `checks.json` | La lista única de comandos que ejecuta `specboot check` | `specboot map` la sincroniza; tú añades los tuyos |
-| `base-standards.md`, `<frente>-standards.md` | Arquitectura, convenciones, pruebas, archivos de referencia | El agente; tú revisas |
-| `development-guide.md`, `data-model.md`, `api-spec.md` | Guía de desarrollo, modelo de datos, contratos | El agente; tú revisas |
-| `decisions.md` | Decisiones cerradas, política de esqueleto, elementos diferidos | El agente, con tus respuestas |
-| `overrides.md` | Tabla «término del documento → identificador a usar» | El agente, cuando una decisión contradice un documento |
-| `skill-gaps.md` | Lo que tus skills no cubrieron y hubo que asumir | El agente |
-| `fronts.lock.json` | Versión de cada skill base y documento con la que se escribieron los estándares | `specboot map` |
-
-Cada regla lleva una etiqueta y su evidencia:
-
-- `[observed]`: vista en el código en dos o más sitios, o impuesta por una configuración.
-- `[prescribed]`: viene de un documento de arquitectura, una decisión o una skill base.
-- `[prescribed, deferred D-0xx]`: prescrita pero aplazada por la política de esqueleto.
-- `[assumed]`: ninguna fuente la cubre; hay que confirmarla.
-
-Estados de un documento: `draft` (vacío), `mapped` o `prescribed` (escrito por el agente), `reviewed` (confirmado por ti). Solo tú pones `reviewed`.
-
-## Checks: una sola lista
-
-`openspec/standards/checks.json` es lo único que ejecuta `specboot check`. Se sincroniza sola en cada `map`, `check` y `doctor`:
-
-| `source` | De dónde sale | Dónde se edita |
-|----------|---------------|----------------|
-| `front` | `checks` de cada frente en `fronts.json` | En `fronts.json` |
-| `project` | Scripts y configuración descubiertos en el repositorio | Se añaden solos; desactívalos con `"disabled": true` |
-| `user` | Añadidos a mano | En `checks.json` |
-
-- El primer dueño de una carpeta manda: si un frente declara checks para `backend/` y luego se descubren otros en esa carpeta, los nuevos entran con `"disabled": true`. En un proyecto existente es al revés: los del proyecto mandan y los del frente entran desactivados.
-- Los comandos descubiertos usan el gestor del proyecto: `uv run`, `poetry run`, `pdm run`, `pnpm`, `yarn`, `bun`.
-- `specboot check --list` muestra todos, activos e inactivos.
-- Un check cuya carpeta aún no existe se omite; con `--strict` cuenta como fallo si no se ejecuta ninguno.
-
-Garantía real: solo lo que estos comandos comprueban. Arquitectura, nombres y patrones se guían con los estándares y la revisión, pero no se garantizan.
-
-## Frentes
-
-`fronts.json` declara las partes del proyecto y qué skills las definen:
-
-```json
-{
-  "mode": "greenfield",
-  "docs": { "placement": "store" },
-  "fronts": {
-    "backend": {
-      "path": "backend",
-      "core": ["python-project-structure", "fastapi-templates", "python-code-style", "python-testing-patterns"],
-      "topics": ["python-observability", "langgraph-fundamentals"],
-      "decisions": { "architecture": "monolito modular" },
-      "checks": ["uv run ruff check .", "uv run mypy .", "uv run pytest"]
-    }
-  }
-}
-```
-
-| Campo | Para qué sirve |
-|-------|----------------|
-| `path` | Carpeta del frente |
-| `core` | Skills base: de ellas salen los estándares. Si dos se contradicen, el agente te obliga a decidir |
-| `topics` | Skills de tema: se cargan solo cuando una tarea las necesita |
-| `decisions` | Lo ya decidido. Queda cerrado |
-| `checks` | Comandos de verificación del frente |
-
-**Capa agéntica dentro del backend.** Si los agentes corren en el mismo desplegable que el backend, no declares un frente `ai`: pon sus skills (LangGraph, RAG, evaluación) en `backend.topics`. Hay un preset: `presets/fronts.fastapi-react-agentic.json`. Declara un frente `ai` solo cuando los agentes sean un desplegable propio, con su carpeta y sus checks.
-
-Los frentes de ML y ciencia de datos usan otra plantilla (datos, reproducibilidad, evaluación, notebooks frente a código de producción).
-
-## Documentos de arquitectura y overrides
+Instala la [última release](https://github.com/cenavia/specboot/releases/latest) por su tag (el ejemplo usa `v0.7.4`):
 
 ```bash
-specboot doc add ruta/arquitectura.md                 # todo el proyecto
-specboot doc add ruta/backend.md --front backend      # un frente
+git clone https://github.com/cenavia/specboot.git ~/.specboot
+cd ~/.specboot
+git checkout v0.7.4
+npm link
+specboot install
 ```
 
-- Se guardan en `docs/architecture/` (o en `openspec/standards/sources/` si aún no elegiste dónde vive `docs/`).
-- Lo que un documento afirma es el estándar, aunque una skill diga otra cosa. Lo que elige queda cerrado y el agente no vuelve a preguntarlo.
-- Las skills solo cubren lo que el documento deja abierto.
+`specboot install` genera las skills `openspec-*` según tu perfil de OpenSpec, enlaza todas las skills en `~/.claude/skills` y `~/.agents/skills`, escribe la regla global de cada agente e instala el pack de eficiencia (`SPECBOOT_SKIP_EFFICIENCY=1` lo omite).
 
-**Overrides.** Un documento no se reescribe cada vez que el equipo decide algo distinto. Si el documento nombra un módulo `facturacion` y luego decides que el código va en inglés, se añade una fila a `overrides.md`:
-
-| Document term | Use instead | Kind | Decision | Document and section |
-|---------------|-------------|------|----------|----------------------|
-| facturacion | billing | module | D-010 | arquitectura.md, Módulos |
-
-Los agentes leen esa tabla antes que el documento y nunca reintroducen el término original.
-
-## Carpeta `docs/`
-
-Lugar único para planificación, arquitectura y decisiones: `docs/planning/`, `docs/architecture/`, `docs/adr/`.
-
-| Ubicación | Resultado | Cuándo |
-|-----------|-----------|--------|
-| `local` (por defecto) | Carpeta real dentro del proyecto del cliente, ignorada por git. `specboot sync` la respalda en el store y trae los cambios del equipo | Casi siempre |
-| `client` | Carpeta normal del repositorio del cliente, versionada con el código | El cliente debe ver esos documentos |
-| `store` | Enlace al store privado | Prefieres no tener copia física en el proyecto |
-
-Se cambia con `specboot docs local|client|store`. Si el cliente ya versiona una carpeta `docs/`, solo se admite `client` y es la que se elige sola.
-
-Con `local`, cada máquina tiene su copia y el store guarda el respaldo. Un manifiesto por máquina distingue un archivo borrado de uno que todavía no llegó, así que los borrados también se propagan. En un worktree secundario, `docs/` es un enlace a la del árbol principal: una sola copia por máquina.
-
-## Planificación
-
-El plugin `plan` se aplica por defecto en proyectos nuevos y existentes. `specboot init` y cada `specboot map` añaden a `fronts.json` las skills de planificación que estén instaladas, así que un proyecto creado antes de registrar el plugin, o antes de la v0.6, las recibe en el siguiente `map`. Una lista escrita a mano se respeta; `"planning": {"disabled": true}` la apaga. `doctor` avisa si faltan y muestra el comando para registrarlas:
-
-```json
-"planning": {
-  "skills": ["product-ideation-brainstorm", "breakdown-feature-prd", "project-manager"],
-  "output": "docs/planning"
-}
-```
-
-La skill `specboot-plan` del arnés orquesta el flujo en los cuatro agentes (el comando `/plan:pipeline` solo existe en Claude Code):
-
-| Modo | Recorrido |
-|------|-----------|
-| Greenfield | Ideación → PRD del producto → historias → backlog → épicas. Después, `specboot-prescribe` usa el PRD |
-| Brownfield | PRD por funcionalidad, que parte de `openspec/specs/` y los estándares → historias → backlog |
-
-El plan termina en historias y épicas: cada elemento del backlog se convierte en un cambio de OpenSpec, que lleva sus propias tareas. `specboot-start` decide el camino según el tamaño del pedido: producto o épica → `specboot-plan`; una historia → `enrich-us` y `openspec-propose`; un cambio pequeño → directo.
-
-## Trabajo en equipo
-
-El store es un repositorio git. Para compartirlo, dale un remoto privado y da acceso solo a tu equipo:
+Comprueba la instalación:
 
 ```bash
-git -C ~/.specboot-data/stores/acme remote add origin <url-privada>
-specboot sync
+specboot doctor
 ```
 
-Cada compañero instala el arnés y las mismas skills, y en su clon del repositorio del cliente ejecuta `specboot init acme --remote <url-privada>`: clona el store y restaura `docs/`.
+## Inicio rápido
 
-- `specboot sync` confirma tu trabajo, trae el del equipo (rebase) y sube.
-- `specboot pull` trae el del equipo sin subir.
-- Si dos personas cambiaron las mismas líneas, el arnés se detiene sin perder nada e indica cómo resolverlo.
-- `doctor` avisa cuando el store va por detrás del remoto; con `--strict` falla.
-- `project-facts.md` no se versiona: se regenera en cada máquina.
-- `fronts.json` guarda el commit de cada repositorio de skills (`skillsPin`) con el que se escribieron los estándares. Si un compañero tiene otra versión, `doctor` le muestra el `git checkout` exacto; `specboot map --accept` adopta la versión nueva para todos.
+Desde la raíz del repositorio del cliente:
 
-## Proyecto nuevo y traspaso
+```bash
+specboot init acme                   # crea el store "acme", enlaza openspec/ y protege el repo
+specboot source add ~/mis-skills     # opcional: registra tus skills
+specboot map                         # inventario, plantillas de estándares y checks
+specboot doctor                      # todo en ok
+```
 
-1. `specboot init` marca el proyecto como nuevo si no hay código.
-2. La skill `specboot-prescribe` lee overrides, documentos y skills base; arma la tabla de decisiones; pregunta solo lo que ningún documento cierra; registra la política de esqueleto (completo o mínimo ejecutable, con lo aplazado en una lista) y escribe los estándares.
-3. El primer cambio de OpenSpec crea el esqueleto: carpetas, linter, pruebas y CI.
-4. **Traspaso obligatorio.** Cuando hay código versionado bajo los frentes, `map` y `doctor` avisan «handoff due». Antes del siguiente cambio: la skill `specboot-map` verifica el código contra lo prescrito y completa lo que ya no es «Not defined yet», y luego `specboot mode brownfield`.
+Abre el agente en el proyecto y pídele que escriba los estándares: la skill `specboot-map` en un proyecto existente o `specboot-prescribe` en uno nuevo. A partir de ahí, cada cambio sigue el flujo de OpenSpec.
 
-## Proyecto existente
+## El flujo de un cambio
 
-1. `specboot init` hace el inventario de reglas del código (linter, tipos, CI, hooks, guías, reglas de agentes del cliente).
-2. La skill `specboot-map` escribe los estándares a partir del código, con evidencia por regla.
-3. Si hay documentos de arquitectura, describen el objetivo y el código la realidad. Las contradicciones se reportan como desviación y tú decides.
+| Paso | Comando | Qué hace | Skills que dispara solo |
+|------|---------|----------|--------------------------|
+| 1 | `/openspec-explore` | Entiende el pedido, la arquitectura y los tradeoffs, sin código | `enrich-us`, `explain` |
+| 2 | `/openspec-propose` | Crea el change: proposal, specs, design y tasks | `specboot-plan`, `enrich-us`, `playwright-qa-scenarios` |
+| 3 | `/openspec-apply-change` | Implementa las tareas con tests | `ponytail`, `work-unit-commits`, `specboot check`, `update-docs` |
+| 4 | `/openspec-verify-change` | Quality gate completo | `specboot check` → `adversarial-review` → `mutation-testing`? → `code-auditing`? → `judgment-day` |
+| 5 | `/openspec-archive-change` | Sincroniza las specs principales y archiva | `specboot sync` |
+| 6 | `/branch-pr` | Sube la rama y abre el PR | — |
 
-## Protección del repositorio del cliente
+Las skills se cargan aunque no las invoques: `specboot install` escribe en cada skill `openspec-*` qué debe correr antes, durante y después. Esto solo aplica en proyectos con `openspec/standards/`. El detalle está en la skill `specboot-start` §§5a–5c.
 
-- **`.git/info/exclude`** oculta `openspec`, `.claude/`, `.cursor/`, `.codex/`, `.opencode/`, `.agents/`, `.atl/`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `codex.md`, y `docs` salvo en ubicación `client`.
-- **Regla de Cursor.** Cursor guarda sus User Rules en su configuración, no en un archivo, así que `init`, `link` y `map` escriben la regla del arnés como regla de proyecto en `.cursor/rules/specboot.mdc` (`alwaysApply: true`). Vive bajo `.cursor/`, que ya está oculto y bloqueado. Si ya existe un archivo con ese nombre que no es de specboot, no se toca.
-- **Hook `pre-commit`** rechaza commits que añadan esos archivos, incluso con `git add -f`. Solo bloquea archivos nuevos.
-- **Ambos son locales a tu clon.** Un compañero que clone el repositorio no queda protegido. Para protegerlos a todos: `specboot init <cliente> --gitignore` añade `/openspec` (y `/docs` si es privado) al `.gitignore` versionado. Eso hace visible el nombre de la carpeta en el repositorio del cliente; por eso es opcional.
-- Si el repositorio usa `core.hooksPath` (Husky), el hook no se instala. Si ya hay un `pre-commit`, se escribe `pre-commit.specboot` al lado.
-- Las firmas de coautoría que añaden los agentes se configuran en cada herramienta.
+Archive solo procede si `judgment-day` terminó en `APPROVED`. Si un paso del gate falla, el arreglo vuelve a `apply` y el gate continúa desde el paso que falló.
 
-**Respaldo.** Sin remoto, el store existe solo en tu máquina. `init` y `doctor` lo avisan; `doctor --strict` falla.
+### Ejemplo: de ticket a PR
+
+```text
+/enrich-us <ticket> # opcional 
+/openspec-explore <ticket>.md
+/openspec-propose
+/openspec-apply-change
+/openspec-verify-change
+/openspec-archive-change
+/branch-pr
+```
+
+| Comando | Resultado |
+|---------|-----------|
+| explore | Ticket, arquitectura y tradeoffs entendidos (por ejemplo, sync o async), sin código |
+| propose | Change `model-gateway-stub` con proposal, specs, design y tasks |
+| apply | Implementación en `feature/model-gateway-stub`, con tests, checks y commits |
+| verify | Verify, `specboot check`, adversarial review, mutation testing y `judgment-day` en `APPROVED` |
+| archive | Spec principal `model-gateway` sincronizada, change archivado y `specboot sync` |
+| branch-pr | Rama subida y PR abierto con `Closes #<issue>` |
+
+### Variantes según el caso
+
+| Situación | Qué cambia |
+|-----------|------------|
+| Ticket vago | `/enrich-us` antes de `propose` |
+| Cambio ya claro | `/openspec-ff-change` crea todos los artefactos de una vez (perfil extendido) |
+| Varios cambios en paralelo | Un worktree por cambio (`using-git-worktrees`) antes de `apply` |
+| Empaquetado tipo Jira | `/commit` en lugar de `/branch-pr` |
+| Perfil `core` de OpenSpec | No hay `verify`: el gate empieza en `specboot check` |
+| Producto o épica completa | `specboot-plan` primero: PRD, historias y backlog |
+
+## Agentes compatibles
+
+| Agente | Skills | Regla del arnés |
+|--------|--------|-----------------|
+| Claude Code | `~/.claude/skills` | `~/.claude/CLAUDE.md` |
+| Codex | `~/.agents/skills` | `~/.codex/AGENTS.md` (o `$CODEX_HOME`) |
+| opencode | `~/.agents/skills` | `~/.config/opencode/AGENTS.md` (o `$XDG_CONFIG_HOME`) |
+| Cursor | `~/.agents/skills` | `.cursor/rules/specboot.mdc` en cada proyecto, oculta a git. La escriben `init`, `link` y `map` |
+
+Abre una sesión nueva del agente después de `install` o `link`: las skills se cargan al iniciar.
 
 ## Comandos
 
@@ -239,7 +170,48 @@ Cada compañero instala el arnés y las mismas skills, y en su clon del reposito
 | `judgment-day` | Juicio final (doble review); parte del quality gate antes de archivar |
 | `openspec-*` | Generadas por `specboot install` según el perfil OpenSpec (`core` = 6, extendido = 12). El arnés trae `openspec-sync-specs` solo como respaldo para OpenSpec 1.x; la generada tiene prioridad |
 
-Cada comando OpenSpec dispara también las skills de proceso del arnés (inventario + tablas must/when en `specboot-start` §§5a–5c). El quality gate es: `openspec-verify-change` (solo extendido) → `specboot check` → `adversarial-review` → `mutation-testing`? → `code-auditing`? → `judgment-day`.
+## Configuración y conceptos
+
+| Tema | Documento |
+|------|-----------|
+| Orden de autoridad, archivos de estándares, etiquetas `[observed]`/`[prescribed]` | [docs/standards.md](docs/standards.md) |
+| `fronts.json` y `checks.json` | [docs/configuration.md](docs/configuration.md) |
+| Documentos de arquitectura, overrides y ubicación de `docs/` | [docs/architecture-docs.md](docs/architecture-docs.md) |
+| Proyecto nuevo, existente, traspaso y planificación | [docs/workflows.md](docs/workflows.md) |
+| Store compartido con el equipo y protección del repositorio | [docs/team-and-safety.md](docs/team-and-safety.md) |
+
+## Actualizar y desinstalar
+
+```bash
+cd ~/.specboot
+git fetch --tags && git checkout <nuevo-tag>
+npm link && specboot install
+```
+
+En cada proyecto, después: `specboot link` y `specboot doctor`. Para volver atrás, haz `checkout` del tag anterior y repite `npm link && specboot install`. El [CHANGELOG](CHANGELOG.md) indica los pasos propios de cada versión.
+
+`specboot uninstall` quita los enlaces y la regla global. Tus stores en `~/.specboot-data/` no se tocan.
+
+## Preguntas frecuentes
+
+**¿Qué ve el cliente en su repositorio?** Solo código. `openspec`, `docs/` y los archivos de agentes están en `.git/info/exclude`, y el hook `pre-commit` rechaza añadirlos incluso con `git add -f`. Si el cliente debe ver `docs/`, usa `specboot docs client`.
+
+**¿Mis compañeros quedan protegidos?** No automáticamente: el exclude y el hook son locales a cada clon. Cada uno ejecuta `specboot init <cliente> --remote <url-privada>`, u opcionalmente usas `--gitignore`. Ver [docs/team-and-safety.md](docs/team-and-safety.md).
+
+**¿Qué pasa si no tengo remoto para el store?** El store existe solo en tu máquina. `init` y `doctor` lo avisan; `doctor --strict` falla.
+
+**`doctor` dice que hay nombres de skill ocupados por otras carpetas.** Normalmente significa que instalaste desde dos copias distintas de specboot. Ejecuta `install` desde la misma copia a la que apunta el comando `specboot` antes de pensar en `--adopt`.
+
+**¿Funciona con OpenSpec 1.x?** Sí, pero se recomienda 2.x con perfil extendido. Ver [UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md).
+
+## Documentación
+
+| Documento | Para qué |
+|-----------|----------|
+| [CHEATSHEET.md](CHEATSHEET.md) | Guía rápida de instalación y uso |
+| [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md) | Onboarding del equipo en un proyecto existente: máquina frente a repositorio y qué tag usar |
+| [UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md) | Pasar de OpenSpec 1.x a 2.x con perfil extendido |
+| [CHANGELOG.md](CHANGELOG.md) | Cambios por versión |
 
 ## Estructura del repositorio
 
@@ -249,13 +221,12 @@ skills/                       skills de flujo del arnés
 scripts/efficiency/           pack de eficiencia (bash + PowerShell; lo corre `specboot install`)
 templates/standards/          plantillas de los documentos de estándares
 presets/                      ejemplos de fronts.json
-CHEATSHEET.md                 guía rápida de instalación y uso
-GUIA-INSTALACION-EQUIPO.md    onboarding equipo: máquina vs proyecto existente
-UPGRADE-OPENSPEC-2.md         OpenSpec 1.x → 2.x + perfil extendido SpecBoot
-CHANGELOG.md                  cambios por versión
+docs/                         referencia: estándares, configuración, flujos, equipo
 ```
 
-## Créditos
+## Licencia y créditos
+
+MIT.
 
 `enrich-us` y `adversarial-review` están adaptadas de [lidr-specboot](https://lidr.co/ia-devs) (LIDR.co, licencia MIT).
 
