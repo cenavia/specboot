@@ -25,7 +25,7 @@ Do **not** run it when the user invokes `enrich-us`, any `opsx:*` / `openspec-*`
 
    | Kind of request | Jira issue type | Branch prefix |
    |-----------------|-----------------|---------------|
-   | Platform: every touched file matches `ai-specs/**`, `.claude/**`, `.cursor/**`, `CLAUDE.md` / `docs/base-standards.md`, `docs/*standards*.md`, `docs/openspec-tasks-mandatory-steps.md`, `docs/platform-changelog.md`, `openspec/config.yaml`, `packages/specboot/**` | `Platform` | `platform/` |
+   | Platform: every touched file matches `openspec/standards/**`, `.claude/**`, `.cursor/**`, `CLAUDE.md` / `docs/base-standards.md`, `docs/*standards*.md`, `docs/openspec-tasks-mandatory-steps.md`, `docs/platform-changelog.md`, `openspec/config.yaml`, `packages/specboot/**` | `Platform` | `platform/` |
    | Bug: something that worked is broken, or a defect | `Bug` | `bug/` |
    | Feature, Story, Task: new or changed product behavior, including small tweaks | the project issue type that best fits (`Feature` by default) | `feature/` |
 

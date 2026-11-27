@@ -139,7 +139,7 @@ if [ "$copied_claude_settings" = false ]; then
 fi
 ```
 
-**Symlinks:** If the source tree uses symlinks for `.claude` (e.g. `.claude/skills` → `../../ai-specs/skills`), copying only these JSON files does not recreate symlink targets. Either repeat the same symlink layout in the worktree or rely on project-relative paths inside `settings.json`.
+**Symlinks:** If the source tree uses symlinks for `.claude` (e.g. `.claude/skills` → a shared skills folder elsewhere in the tree), copying only these JSON files does not recreate symlink targets. Either repeat the same symlink layout in the worktree or rely on project-relative paths inside `settings.json`.
 
 ## Step 3: Project Setup
 

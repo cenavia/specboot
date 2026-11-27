@@ -1,6 +1,6 @@
 ---
 name: sync-agent-symlinks
-description: Analyze and synchronize agent skill exposure after ai-specs skill changes (additions, removals, renames). Use when skills are added/removed in ai-specs and .claude/skills and .cursor/skills must stay aligned through symlinks.
+description: Use only in a project that keeps its own skills in a project-local ai-specs/skills folder, after skills are added, removed or renamed there and .claude/skills and .cursor/skills must stay aligned through symlinks. Not for specboot harness skills, which `specboot install` links.
 author: LIDR.co
 version: 1.0.0
 ---
@@ -8,6 +8,8 @@ version: 1.0.0
 # sync-agent-symlinks Skill
 
 Keep agent-facing skill structures synchronized with `ai-specs/skills` as the canonical source.
+
+This applies only to a project that has a project-local `ai-specs/skills` folder. The specboot harness does not use that layout: its skills are linked into `~/.claude/skills` and `~/.agents/skills` by `specboot install`, so run that instead when harness skills change.
 
 Use this skill after any change in `ai-specs/skills` (new skill, removed skill, renamed skill, moved skill), especially when you need to avoid stale or broken symlinks.
 

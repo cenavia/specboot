@@ -243,7 +243,7 @@ function stackYaml(stack, fr = { mode: 'brownfield', fronts: {} }) {
     '      - Follow the commit convention in base-standards.md; no references to OpenSpec changes or AI tooling',
     '  archive:',
     '    guidance:',
-    '      - Archive only after `specboot check` passes and an adversarial-review in a fresh session ends in PASS or PASS WITH GAPS',
+    '      - Archive only after `specboot check` passes, an adversarial-review in a fresh session ends in PASS or PASS WITH GAPS, and judgment-day ends in APPROVED',
     '      - If the change altered folder layout, routes, naming or language rules, update openspec/standards/ (and overrides.md when it departs from an architecture document) before archiving',
     '      - After archiving, run `specboot sync` to version the specs in the private store',
     YMARK.end,
@@ -397,6 +397,102 @@ function ensureCursorRule(info, quiet = false) {
   if (!quiet) ok('Cursor rule written to .cursor/rules/specboot.mdc (local, never pushed)');
 }
 
+// What the harness adds around each OpenSpec skill. It is written into the generated skill itself, so every
+// agent that loads the skill (Claude Code, Cursor, Codex, opencode) gets it without the user invoking anything.
+// specboot-start §5b is the readable copy of this table: change both together.
+const PROPOSE_BINDINGS = {
+  before: [
+    '`specboot-plan` first, when the request is a product, an epic or a feature with several stories',
+    '`enrich-us` first, when the story is vague or lacks acceptance criteria',
+    '`playwright-qa-scenarios` (case catalog), when the change has frontend behavior',
+  ],
+};
+const ARCHIVE_BINDINGS = {
+  before: [
+    'The quality gate (`specboot-start` §5c) must have completed for each change, ending in `judgment-day` `APPROVED`. If it has not, run it now instead of archiving (start with `openspec-verify-change` when that skill exists, else with `specboot check`)',
+    '`specboot-map`, when the change altered folder layout, routes, naming or language rules, or a library choice',
+  ],
+  after: ['Run `specboot sync` to version the specs in the private store'],
+};
+const BINDINGS = {
+  'openspec-explore': { during: ['`enrich-us`, when the story is vague', '`explain`, when the user needs the concepts behind the question'] },
+  'openspec-propose': PROPOSE_BINDINGS,
+  'openspec-new-change': PROPOSE_BINDINGS,
+  'openspec-ff-change': PROPOSE_BINDINGS,
+  'openspec-apply-change': {
+    before: ['`using-git-worktrees`, when the work needs isolation from the current checkout'],
+    during: [
+      '`ponytail` (always): the smallest diff that meets the tasks and the standards',
+      'Query codegraph before broad file exploration, when the project has a `.codegraph/` index',
+      '`playwright-qa-scenarios` (suite) and `playwright-skill`, when the tasks include frontend E2E tests',
+    ],
+    after: [
+      'Run `specboot check`; a failing check is not done',
+      '`work-unit-commits` (always)',
+      '`chained-pr`, when the change exceeds about 400 changed lines',
+      '`branch-pr`, when opening a pull request; `commit`, when the team packages work through Jira',
+      '`update-docs`, when the change made documentation stale',
+      '`show-spec-working`, when the user asks to see it working',
+      'Do not offer to archive yet: the next step is the quality gate (`openspec-verify-change` when that skill exists, else `specboot-start` §5c)',
+    ],
+  },
+  // Onboard walks every phase inline without invoking the other skills, so their bindings would never fire.
+  'openspec-onboard': {
+    during: [
+      'At each phase, apply the specboot bindings of the matching skill: `openspec-propose` when writing the artifacts, `openspec-apply-change` when implementing',
+      'Before the archive phase, run the quality gate (`specboot-start` §5c) and archive only on `judgment-day` `APPROVED`; then run `specboot sync`',
+    ],
+  },
+  'openspec-verify-change': {
+    after: [
+      'Continue with the rest of the quality gate without waiting to be asked, in this order',
+      'Run `specboot check`',
+      '`adversarial-review`, by a reviewer that did not implement the change: a subagent when the runtime has them; otherwise stop and ask the user to run it in a new session',
+      '`mutation-testing`, when the change includes or depends on tests',
+      '`code-auditing`, when the change touches auth, payments, PII, security or irreversible data',
+      '`judgment-day` (always): the terminal verdict is `APPROVED` or `ESCALATED`',
+      'When a step fails, follow the routing table in `specboot-start` §5c',
+    ],
+  },
+  'openspec-archive-change': ARCHIVE_BINDINGS,
+  'openspec-bulk-archive-change': ARCHIVE_BINDINGS,
+};
+const BINDINGS_MARK = '<!-- specboot:bindings -->';
+
+function bindingsBlock(name) {
+  const b = BINDINGS[name] || {};
+  const section = (title, items) => (items?.length ? [`**${title}**`, ...items.map((i) => `- ${i}`), ''] : []);
+  return [
+    BINDINGS_MARK,
+    '## specboot bindings',
+    '',
+    'These steps are part of this skill when the project root contains `openspec/standards/` (a specboot project); ignore this section otherwise. Load each named skill yourself, by whatever means this agent loads skills. Do not wait for the user to invoke it.',
+    '',
+    '**Before starting**',
+    '- `specboot-start`, unless it was already loaded in this session',
+    ...(b.before || []).map((i) => `- ${i}`),
+    '',
+    ...section('While working', b.during),
+    ...section('After finishing', b.after),
+  ].join('\n');
+}
+
+// Puts the bindings right after the frontmatter, so the agent reads them before the OpenSpec instructions.
+function injectBindings(skillDir) {
+  const file = path.join(skillDir, 'SKILL.md');
+  const txt = fs.readFileSync(file, 'utf8');
+  if (txt.includes(BINDINGS_MARK)) return;
+  const fm = txt.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  const head = fm ? fm[0] : '';
+  const name = path.basename(skillDir);
+  // OpenSpec's own text ends by declaring the work ready for archive; repeat the hand-off where the agent stops reading.
+  const b = BINDINGS[name] || {};
+  const tail = b.after || b.during
+    ? '\n\n## specboot: before you finish\n\nIn a specboot project (`openspec/standards/` exists) this skill is not finished until the steps under `## specboot bindings` above have run. "Ready for archive" in the text above means this OpenSpec step passed, not that the quality gate did.\n'
+    : '';
+  fs.writeFileSync(file, `${head}\n${bindingsBlock(name)}\n${txt.slice(head.length).trimEnd()}${tail || '\n'}`);
+}
+
 function generateOpenspecSkills() {
   if (tryRun(OPENSPEC, ['--version']) === null) {
     warn('openspec CLI not found; skipped generating openspec-* skills (npm install -g @fission-ai/openspec@latest, then re-run install).');
@@ -425,6 +521,7 @@ function generateOpenspecSkills() {
         const dest = path.join(GENERATED, name);
         if (!src || !name.startsWith('openspec-') || exists(dest) || !exists(path.join(src, 'SKILL.md'))) continue;
         fs.cpSync(src, dest, { recursive: true });
+        injectBindings(dest);
         n++;
       }
     }

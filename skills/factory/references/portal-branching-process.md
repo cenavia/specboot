@@ -220,10 +220,7 @@ git merge --no-ff feature/<change-name> -m "merge: <change-name> (<US-ID>)"
 When manual QA or apply steps need `db:seed`, `db:reset`, or other **development** writes:
 
 1. Agent root must be the **worktree** (`.worktrees/<change-name>/`).
-2. Run **`backup-development-database`** skill:
-   ```bash
-   ./ai-specs/scripts/backup_development_database.sh
-   ```
+2. Run the project's development-database backup (its backup skill or script, as named in `openspec/standards/development-guide.md`). If the project has none, stop and ask the user before any dev mutation.
 3. Dumps go to **`tmp/db-backups/`** in that worktree (not repo root on `setup-update`).
 4. Record the path in `openspec/changes/<change>/reports/YYYY-MM-DD-development-db-backup.md`.
 5. Do **not** run `db:seed` until backup succeeds.
