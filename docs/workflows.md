@@ -11,9 +11,15 @@
 
 ## Proyecto existente
 
-1. `specboot init` hace el inventario de reglas del código (linter, tipos, CI, hooks, guías, reglas de agentes del cliente).
-2. La skill `specboot-map` escribe los estándares a partir del código, con evidencia por regla.
-3. Si hay documentos de arquitectura, describen el objetivo y el código la realidad. Las contradicciones se reportan como desviación y tú decides.
+Orden canónico (detalle: [GUIA-BROWNFIELD.md](../GUIA-BROWNFIELD.md), [CHEATSHEET.md](../CHEATSHEET.md) §4):
+
+1. `specboot init <cliente> --existing --docs local --remote <url>` — store, enlace, exclude/hook.
+2. Opcional: `specboot detect --preset` (plantilla en máquina) y `specboot detect --preset --apply` (merge a `openspec/standards/fronts.json` del store; commit local; `--sync` para push).
+3. La skill `specboot-map` escribe los estándares a partir del código, con evidencia por regla.
+4. `specboot check` (línea base) y `specboot sync`.
+5. Si hay documentos de arquitectura, describen el objetivo y el código la realidad. Las contradicciones se reportan como desviación y tú decides.
+
+Capas: preset de máquina ≠ `fronts.json` del store. No uses `--apply` antes de `init`.
 
 ## Planificación
 

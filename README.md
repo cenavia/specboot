@@ -47,12 +47,12 @@ Sirve para proyectos existentes, donde los estándares se observan del código, 
 
 ## Instalación
 
-Instala la [última release](https://github.com/cenavia/specboot/releases/latest) por su tag (el ejemplo usa `v0.7.4`):
+Instala la [última release](https://github.com/cenavia/specboot/releases/latest) por su tag (el ejemplo usa `v0.7.5`):
 
 ```bash
 git clone https://github.com/cenavia/specboot.git ~/.specboot
 cd ~/.specboot
-git checkout v0.7.4
+git checkout v0.7.5
 npm link
 specboot install
 ```
@@ -142,12 +142,13 @@ Abre una sesión nueva del agente después de `install` o `link`: las skills se 
 |---------|----------|
 | `specboot install [--adopt]` / `uninstall` | Enlaza skills, regla global y **siempre** el efficiency pack (ponytail, caveman, codegraph, rtk, headroom). Omitir pack: `SPECBOOT_SKIP_EFFICIENCY=1`. Las `openspec-*` que OpenSpec 2.x deja en las carpetas de los agentes se reemplazan solas (con respaldo); `--adopt` hace lo mismo con cualquier otra carpeta que ocupe un nombre gestionado |
 | `specboot source add <ruta>` / `remove <ruta>` / `list` | Registra una carpeta con tus skills |
-| `specboot init <cliente> [--remote <url>] [--fronts <archivo>] [--new\|--existing] [--docs local\|client\|store] [--gitignore]` | Prepara el proyecto actual |
+| `specboot preset list` / `show` / `create` / `update` / `apply` / `attach` / `remove` | Presets de máquina; `apply` / `create --apply` fusionan al store del cliente |
+| `specboot init <cliente> [--remote <url>] [--fronts <archivo> \| --stack <tech>] [--new\|--existing] [--docs local\|client\|store] [--gitignore]` | Prepara el proyecto actual |
 | `specboot link` | Recrea los enlaces en un worktree nuevo y actualiza el exclude, el hook `pre-commit` y la regla de Cursor (`.cursor/rules/specboot.mdc`) |
 | `specboot docs [local\|client\|store]` | Muestra o fija dónde vive `docs/` |
 | `specboot doc add <archivo> [--front <nombre>]` / `remove <archivo>` / `list` | Registra un documento de arquitectura |
 | `specboot mode [greenfield\|brownfield]` | Muestra o cambia el modo |
-| `specboot detect [--json] [--write]` | Detecta el stack |
+| `specboot detect [--json] [--write] [--preset] [--dry-run] [--force] [--apply] [--replace-fronts] [--sync]` | Stack; preset de máquina; `--apply` merge a `fronts.json` del store |
 | `specboot map [--accept]` | Regenera el inventario, crea plantillas, sincroniza `checks.json` y actualiza exclude, hook y regla de Cursor; `--accept` acepta las versiones actuales de skills y documentos |
 | `specboot check [--list] [--strict]` | Ejecuta `checks.json` |
 | `specboot sync [-m <mensaje>]` | Confirma tu trabajo, trae el del equipo y sube |
@@ -209,6 +210,9 @@ En cada proyecto, después: `specboot link` y `specboot doctor`. Para volver atr
 | Documento | Para qué |
 |-----------|----------|
 | [CHEATSHEET.md](CHEATSHEET.md) | Guía rápida de instalación y uso |
+| [GUIA-GREENFIELD.md](GUIA-GREENFIELD.md) | Proyecto nuevo: presets (escenarios), CLI, `init` con specs/skills/IA ocultos al cliente, prescribe → handoff |
+| [GUIA-BROWNFIELD.md](GUIA-BROWNFIELD.md) | Proyecto existente canónico: init → detect/apply → map → sync (`docs local`, specs ocultas) |
+| [GUIA-PRESETS.md](GUIA-PRESETS.md) | Manifiestos, topics-pack, CRUD + `apply` al store |
 | [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md) | Onboarding del equipo en un proyecto existente: máquina frente a repositorio y qué tag usar |
 | [UPGRADE-OPENSPEC-2.md](UPGRADE-OPENSPEC-2.md) | Pasar de OpenSpec 1.x a 2.x con perfil extendido |
 | [CHANGELOG.md](CHANGELOG.md) | Cambios por versión |
@@ -216,7 +220,8 @@ En cada proyecto, después: `specboot link` y `specboot doctor`. Para volver atr
 ## Estructura del repositorio
 
 ```
-bin/specboot.mjs              CLI sin dependencias
+bin/specboot.mjs              CLI fino (dispatch + help)
+lib/                          CLI por dominio (paths, util, detect, skills, preset, store-fronts, install, project)
 skills/                       skills de flujo del arnés
 scripts/efficiency/           pack de eficiencia (bash + PowerShell; lo corre `specboot install`)
 templates/standards/          plantillas de los documentos de estándares
