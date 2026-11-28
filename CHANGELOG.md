@@ -4,6 +4,7 @@
 
 Presets desde detect, apply al store, CLI modular y docs canónicas. Para actualizar: `git fetch --tags && git checkout v0.7.5 && npm link && specboot install`.
 
+- **Fix:** `specboot install` fallaba tras la modularización (`ReferenceError: os is not defined`, luego `linkDir is not defined`). Se restauran los imports de `node:os` y `linkDir` en `lib/install.mjs`.
 - **`preset apply` / `detect --preset --apply`:** el preset de máquina se puede fusionar en `openspec/standards/fronts.json` del store del cliente registrado (merge por defecto; conserva `mode`/`docs`/`planning`/`documents`; `--replace-fronts` solo reemplaza frentes; commit local del store; `--sync` hace push). Módulo: `lib/store-fronts.mjs`.
 - **Docs canónicas:** [CHEATSHEET.md](CHEATSHEET.md) §0/§3/§4, [GUIA-BROWNFIELD.md](GUIA-BROWNFIELD.md), [GUIA-PRESETS.md](GUIA-PRESETS.md), [docs/workflows.md](docs/workflows.md) y onboarding de equipo alineados al orden init → detect/apply → map → sync.
 - **Modularización del CLI:** el monolito `bin/specboot.mjs` pasa a un bin fino + módulos en `lib/` (`paths`, `util`, `detect`, `skills`, `preset`, `install`, `project`). Misma CLI; `lib/app.mjs` reexporta la superficie pública para tests.
