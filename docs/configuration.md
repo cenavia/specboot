@@ -34,6 +34,17 @@
 
 Los frentes de ML y ciencia de datos usan otra plantilla (datos, reproducibilidad, evaluación, notebooks frente a código de producción).
 
+## Presets por tecnología
+
+Para no editar `fronts.json` a mano en cada greenfield, el plugin puede llevar un `specboot.preset.json`. SpecBoot lo materializa con:
+
+```bash
+specboot preset create go
+specboot init <cliente> --stack go
+```
+
+`topics: "*"` expande a todas las skills instaladas con el `skillPrefix` (por defecto `<technology>-`) que no estén en `core`. Guía completa: [GUIA-PRESETS.md](../GUIA-PRESETS.md). Manifestos de ejemplo: [presets/manifests/](../presets/manifests/).
+
 ## Checks: una sola lista
 
 `openspec/standards/checks.json` es lo único que ejecuta `specboot check`. Se sincroniza sola en cada `map`, `check` y `doctor`:

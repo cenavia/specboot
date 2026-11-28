@@ -1,25 +1,42 @@
-# specboot: guía rápida
+# specboot: guía rápida (canónica)
 
-Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield). Versión 0.7.4.
+Instalación y uso para proyectos nuevos (greenfield) y existentes (brownfield). Versión 0.7.5.
 
-Onboarding detallado del equipo (recomendación máquina → luego proyecto existente): **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)**.
+| Guía | Cuándo |
+|------|--------|
+| **[GUIA-GREENFIELD.md](GUIA-GREENFIELD.md)** | Proyecto vacío, cliente limpio, prescribe → esqueleto → handoff |
+| **[GUIA-BROWNFIELD.md](GUIA-BROWNFIELD.md)** | Repo con código; specs ocultas; `docs local`; detect → apply → map |
+| **[GUIA-PRESETS.md](GUIA-PRESETS.md)** | Manifiestos, CRUD de preset, detect/apply |
+| **[GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md)** | Onboarding de máquina y compañeros |
+
+## 0. Capas (no las mezcles)
+
+| Capa | Ruta | Quién la escribe | ¿Git del cliente? |
+|------|------|------------------|-------------------|
+| Código de producto | repo del cliente | tú / agente (apply OpenSpec) | **Sí** |
+| Preset de **máquina** | `~/.specboot-data/presets/fronts.<id>.json` | `preset create` / `detect --preset` | No |
+| Store de **specs** | `~/.specboot-data/stores/<cliente>/` → `openspec/` | `init`, `--apply`, map, sync | No |
+| Frentes activos | `openspec/standards/fronts.json` (en el store) | `init --stack/--fronts` o `preset apply` / `detect --preset --apply` | No |
+| Docs SpecBoot | `docs/` local (ignorada) | plan / doc add | No (salvo `docs client`) |
+| Skills / regla Cursor | `~/.claude/skills`, `.cursor/rules/…` | `install` / `init` | No |
+
+**Regla:** `detect --preset` = plantilla en máquina. `--apply` = merge al store del cliente (hace falta `init` antes). `specboot sync` = compartir el store con el equipo.
 
 ## 1. Dónde va cada cosa
 
 | Qué | Ruta exacta | Quién lo pone |
 |-----|-------------|---------------|
-| El arnés | `~/.specboot/` | Tú, con `git clone` |
-| Tus skills | Cualquier carpeta tuya, por ejemplo `~/code/agents/plugins/` | Tú. **No las copies a mano a ningún otro sitio** |
-| Enlaces para Claude Code, Cursor y opencode | `~/.claude/skills/<skill>` | `specboot install` |
-| Enlaces para Codex y Cursor | `~/.agents/skills/<skill>` | `specboot install` |
-| Regla global de Claude Code | `~/.claude/CLAUDE.md` | `specboot install` |
-| Regla global de Codex | `~/.codex/AGENTS.md` | `specboot install` |
-| Regla global de opencode | `~/.config/opencode/AGENTS.md` | `specboot install` |
-| Regla de Cursor | `.cursor/rules/specboot.mdc` en cada proyecto (ignorado por git) | `specboot init` / `link` / `map` |
+| El arnés | `~/.specboot/` (o clone de dev + `npm link`) | Tú |
+| Código fuente del CLI | `bin/specboot.mjs` + `lib/*` | Repo SpecBoot |
+| Tus skills | Carpeta de plugins, p. ej. `~/code/agents/plugins/` | Tú (`source add`) |
+| Enlaces Claude / Cursor / Codex / opencode | `~/.claude/skills`, `~/.agents/skills` | `specboot install` |
+| Reglas globales | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, … | `specboot install` |
+| Regla Cursor | `.cursor/rules/specboot.mdc` (excluida) | `init` / `link` / `map` |
 | Datos del arnés | `~/.specboot-data/` | El arnés |
-| Store privado de un cliente | `~/.specboot-data/stores/<cliente>/` | `specboot init` |
-| Specs y estándares | `<proyecto>/openspec` → enlace al store | `specboot init` |
-| Planificación y arquitectura | `<proyecto>/docs/`, carpeta real ignorada por git | `specboot init` (ubicación `local` por defecto) |
+| Store privado | `~/.specboot-data/stores/<cliente>/` | `specboot init` |
+| Specs / estándares | `<proyecto>/openspec` → enlace al store | `specboot init` |
+| Presets generados | `~/.specboot-data/presets/` | `preset create` / `detect --preset` |
+| Planificación / arquitectura | `<proyecto>/docs/` local ignorada | `init` (`--docs local`) |
 
 Estructura de una carpeta de skills válida (cualquier profundidad sirve; se detecta cada `SKILL.md`):
 
@@ -34,7 +51,7 @@ Cada `SKILL.md` necesita `name:` y `description:` en su encabezado. De un plugin
 
 ## 2. Instalación (una vez por máquina)
 
-Instala por **tag** ([releases](https://github.com/cenavia/specboot/releases)): **`v0.7.4`** (actual), `v0.7.3`, `v0.7.2`, `v0.7.1`, `v0.7.0` o **`v0.6.1`** (estable anterior). Detalle: [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md).
+Instala por **tag** ([releases](https://github.com/cenavia/specboot/releases)): **`v0.7.5`** (actual), `v0.7.4`, `v0.7.3`, `v0.7.2`, `v0.7.1`, `v0.7.0` o **`v0.6.1`** (estable anterior). Detalle: [GUIA-INSTALACION-EQUIPO.md](GUIA-INSTALACION-EQUIPO.md).
 
 ```bash
 # 1. Requisitos
@@ -44,11 +61,11 @@ npm install -g @fission-ai/openspec@latest
 # 2. El arnés en la versión acordada
 git clone https://github.com/cenavia/specboot.git ~/.specboot
 cd ~/.specboot
-git checkout v0.7.4                             # o: git checkout v0.6.1
+git checkout v0.7.5                             # o: git checkout v0.6.1
 npm link                                        # comando global `specboot`
 
 # Cambiar de versión más tarde:
-#   cd ~/.specboot && git fetch --tags && git checkout v0.7.4 && npm link && specboot install
+#   cd ~/.specboot && git fetch --tags && git checkout v0.7.5 && npm link && specboot install
 
 # 3. Tus skills
 specboot source add ~/code/agents/plugins       # la carpeta que contiene tus skills
@@ -69,83 +86,106 @@ En Cursor no hay que pegar nada: `init`, `link` y `map` escriben la regla en `.c
 
 Repite `specboot install` cada vez que cambies de tag, actualices OpenSpec o tus skills.
 
-## 3. Flujo greenfield (proyecto nuevo)
+## 3. Flujo greenfield (canónico, paso a paso)
+
+Detalle: **[GUIA-GREENFIELD.md](GUIA-GREENFIELD.md)**. Escenario: specs/skills/IA **fuera** del git del cliente; `--docs local`.
 
 ```bash
-# 1. Repositorio vacío del cliente
-mkdir mi-proyecto && cd mi-proyecto && git init
-git commit --allow-empty -m "chore: init"
+# ——— A. Máquina (una vez) ———
+# (igual que §2)
 
-# 2. Iniciar con un preset de frentes
+# ——— B. Preset de máquina ———
+specboot preset create go,react --topics-from ai --attach-to backend
+# o: specboot preset create go
+# o JSON estático: ~/.specboot/presets/fronts.fastapi-react.json
+
+# ——— C. Repo vacío del cliente ———
+mkdir mi-proyecto && cd mi-proyecto
+git init && git commit --allow-empty -m "chore: init"
+
 specboot init <cliente> \
-  --fronts ~/.specboot/presets/fronts.fastapi-react.json \
-  --remote <url-git-privada-de-specs>
+  --stack go,react,ai \
+  --attach-to backend \
+  --docs local \
+  --remote <url-store-privada>
+# alternativo: --fronts ~/.specboot-data/presets/fronts.<id>.json
 
-# 3. Registrar tu documento de arquitectura (opcional, manda sobre las skills)
-specboot doc add ~/ruta/arquitectura.md
-specboot doc add ~/ruta/backend.md --front backend
-
-# 4. Comprobar
 specboot doctor
+git check-ignore -v openspec docs .cursor
 ```
 
-Luego, con el agente:
+| Paso | Agente / CLI | Resultado |
+|------|--------------|-----------|
+| 0 | Skill `specboot-plan` (opcional) | PRD / backlog en `docs/planning/` (local) |
+| 1 | Skill `specboot-prescribe` | Estándares en el store |
+| 2 | Revisas `[assumed]` → `status: reviewed` | |
+| 3 | `specboot sync -m "standards: prescribe…"` | Store remoto |
+| 4–5 | OpenSpec propose/apply del **esqueleto** | Código en el repo del cliente |
+| 6 | `specboot check` | Gates en verde |
+| 7 | Commit del esqueleto en el **git del cliente** | Lo único que el cliente debe ver |
+| 8 | Skill `specboot-map` + `specboot mode brownfield` | Handoff obligatorio |
+| 9 | `specboot sync -m "standards: handoff brownfield"` | |
 
-| Paso | Qué le pides al agente | Resultado |
-|------|------------------------|-----------|
-| 0 | «Ejecuta la skill `specboot-plan`» | Ideación, PRD, historias y backlog en `docs/planning/` |
-| 1 | «Ejecuta la skill `specboot-prescribe`» | Lee overrides, documentos y skills base; te pregunta solo lo que ningún documento cierra; escribe `openspec/standards/` |
-| 2 | Revisas y corriges lo marcado `[assumed]` | Pones `status: reviewed` en cada documento |
-| 3 | «Propón el cambio del esqueleto del proyecto» | Cambio de OpenSpec con carpetas, linter, pruebas y CI |
-| 4 | «Aplica el cambio» | Código del esqueleto |
-| 5 | `specboot check` | Todos los checks activos pasan |
-| 6 | Commit del esqueleto en el repositorio del cliente | |
-| 7 | **Traspaso:** «Ejecuta la skill `specboot-map`» y después `specboot mode brownfield` | Lo prescrito se verifica contra el código |
-| 8 | `specboot sync -m "standards: verify, switch to brownfield"` | Store versionado |
+`doctor` / `map` avisan «handoff due» hasta el paso 8.
 
-`specboot map` y `specboot doctor` avisan «handoff due» cuando toca el paso 7. No empieces otro cambio antes.
+## 4. Flujo brownfield (canónico, paso a paso)
 
-Presets en `~/.specboot/presets/`:
+Detalle: **[GUIA-BROWNFIELD.md](GUIA-BROWNFIELD.md)**. Escenario: mismo contrato de ocultación + solo `docs local`.
 
-| Archivo | Para |
-|---------|------|
-| `fronts.fastapi-react.json` | FastAPI + React |
-| `fronts.fastapi-react-agentic.json` | Igual, con LangGraph dentro del backend como `topics` |
-| `fronts.springboot-angular.json` | Spring Boot + Angular |
-| `fronts.all-fronts.example.json` | Ejemplo con backend, frontend, mobile, ai, ml y data-science |
-
-Para usar uno por defecto: cópialo a `~/.specboot-data/fronts.default.json`.
-
-## 4. Flujo brownfield (proyecto existente)
+**Orden fijo:** máquina → comprobar `docs/` → **init** → detect/apply → map → sync.
 
 ```bash
-cd proyecto-existente
+# ——— A. Máquina (una vez) ———  §2
 
-# 1. Iniciar (detecta solo que hay código)
-specboot init <cliente> --remote <url-git-privada-de-specs>
+# ——— B. Repo existente ———
+cd /ruta/proyecto-cliente
+git ls-files -- docs | head          # debe estar vacío para docs local
 
-# 2. docs/ queda local e ignorada por defecto. Solo si el cliente debe verla:
-specboot docs client
+# 1. Registrar proyecto + store (antes de --apply)
+specboot init <cliente> \
+  --existing \
+  --docs local \
+  --remote <url-store-privada>
+# Opcional en el mismo init si ya sabes el stack:
+#   --stack go,react
+#   --fronts ~/.specboot-data/presets/fronts.go-react.json
 
-# 3. Opcional: documento de arquitectura objetivo y frentes
-specboot doc add ~/ruta/arquitectura.md
-#   edita openspec/standards/fronts.json si quieres skills por frente
+# 2. Inferir preset desde el código (máquina)
+specboot detect --preset --dry-run   # plan + gaps; no escribe
+specboot detect --preset             # escribe ~/.specboot-data/presets/fronts.<id>.json
 
-# 4. Comprobar
+# 3. Fusionar frentes al store del cliente
+specboot detect --preset --apply     # merge fronts.json + commit local del store
+# o: specboot preset apply <id>
+# --replace-fronts  → sustituye solo el mapa fronts
+# --sync            → además push del store
+
+# 4. Salud
 specboot doctor
-specboot check --list         # comandos de lint y pruebas que encontró en el proyecto
+specboot check --list
+git check-ignore -v openspec docs .cursor
+
+# 5. Arquitectura objetivo (opcional; sigue en docs/ local)
+specboot doc add ~/ruta/arquitectura.md
 ```
 
-Luego, con el agente:
+| Paso | Agente / CLI | Resultado |
+|------|--------------|-----------|
+| 1 | Skill `specboot-map` | Estándares desde el **código** + evidencia |
+| 2 | Revisas `[assumed]` / drift vs docs | `status: reviewed` |
+| 3 | `specboot check` | Línea base (anota fallos previos) |
+| 4 | `specboot sync -m "standards: map project"` | Store compartido |
 
-| Paso | Qué le pides al agente | Resultado |
-|------|------------------------|-----------|
-| 1 | «Ejecuta la skill `specboot-map`» | Lee reglas, configuración y código; escribe `openspec/standards/` con evidencia por regla |
-| 2 | Revisas lo marcado `[assumed]` y las desviaciones frente a tu documento | Pones `status: reviewed` |
-| 3 | `specboot check` | Línea base: anota en los estándares qué fallaba antes de tocar nada |
-| 4 | `specboot sync -m "standards: map project"` | Store versionado |
+En brownfield **manda el código**. Los gaps de `detect --preset` se resuelven instalando plugins o creando skills; no se inventan.
 
-En un proyecto existente el código manda. Tu documento describe el objetivo; las contradicciones se reportan y tú decides.
+**Compañero** (store ya existe):
+
+```bash
+# Fase A en su máquina (§2), luego:
+cd clon-cliente
+specboot init <cliente> --existing --docs local --remote <url-store>
+specboot pull && specboot doctor
+```
 
 ## 5. Ciclo de cada cambio (ambos flujos)
 
@@ -226,20 +266,31 @@ Después de editarlo: `specboot map`.
 
 | Comando | Para qué |
 |---------|----------|
-| `specboot doctor [--strict]` | Qué falta o está mal, con el comando que lo arregla |
-| `specboot source add <carpeta>` | Registrar tus skills |
-| `specboot install` | Enlazar skills y regla global |
-| `specboot init <cliente> [opciones]` | Preparar un proyecto |
-| `specboot docs local\|client\|store` | Dónde vive `docs/` |
-| `specboot doc add <archivo> [--front <f>]` | Registrar un documento de arquitectura |
-| `specboot map [--accept]` | Regenerar inventario y sincronizar checks |
-| `specboot check [--list] [--strict]` | Ejecutar o listar los checks |
-| `specboot mode brownfield` | Cerrar la fase de proyecto nuevo |
-| `specboot link` | Recrear enlaces en un worktree nuevo |
-| `specboot sync -m "..."` | Confirmar, traer lo del equipo y subir |
-| `specboot pull` | Traer lo del equipo sin subir |
+| `specboot doctor [--strict]` | Salud de máquina/proyecto |
+| `specboot source add\|list\|remove` | Plugins de skills |
+| `specboot install [--adopt]` | Enlazar skills, reglas, efficiency pack |
+| `specboot preset list\|show\|create\|update\|apply\|attach\|remove` | CRUD de presets de máquina + apply al store |
+| `specboot detect [--preset] [--dry-run] [--apply] [--replace-fronts] [--sync] [--write] [--json]` | Stack; preset; merge al store |
+| `specboot init <cliente> …` | Store + enlace + exclude/hook |
+| `specboot docs local\|client\|store` | Ubicación de `docs/` |
+| `specboot doc add\|remove\|list` | Documentos de arquitectura |
+| `specboot map [--accept]` | Inventario + plantillas + checks |
+| `specboot check [--list] [--strict]` | Gates del store |
+| `specboot mode greenfield\|brownfield` | Modo del proyecto |
+| `specboot link` | Worktree: enlaces + exclude + hook + regla Cursor |
+| `specboot sync -m "…"` | Commit + rebase + **push** del store |
+| `specboot pull` | Traer store sin subir |
 
-Opciones de `init`: `--remote <url>`, `--fronts <archivo>`, `--new`, `--existing`, `--docs local|client|store`, `--gitignore`.
+**`init`:** `--remote`, `--stack` / `--fronts`, `--topics-from`, `--attach-to`, `--new` / `--existing`, `--docs local|client|store`, `--gitignore`.
+
+**Preset / detect (brownfield):**
+
+```bash
+specboot detect --preset --dry-run
+specboot detect --preset --apply          # requiere init previo
+specboot preset apply go-react
+specboot preset apply --from-detect
+```
 
 ## 9. Problemas frecuentes
 
@@ -263,11 +314,11 @@ Opciones de `init`: `--remote <url>`, `--fronts <archivo>`, `--new`, `--existing
 
 ## 10. Compartir con el equipo
 
-Cada compañero instala el **mismo tag** del arnés (`v0.7.4` o el que acuerden):
+Cada compañero instala el **mismo tag** del arnés (`v0.7.5` o el que acuerden):
 
 ```bash
 git clone https://github.com/cenavia/specboot.git ~/.specboot
-cd ~/.specboot && git checkout v0.7.4 && npm link
+cd ~/.specboot && git checkout v0.7.5 && npm link
 specboot source add <ruta-skills-del-equipo>
 specboot install && specboot doctor
 ```

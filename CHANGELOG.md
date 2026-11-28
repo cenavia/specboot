@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.5
+
+Presets desde detect, apply al store, CLI modular y docs canónicas. Para actualizar: `git fetch --tags && git checkout v0.7.5 && npm link && specboot install`.
+
+- **`preset apply` / `detect --preset --apply`:** el preset de máquina se puede fusionar en `openspec/standards/fronts.json` del store del cliente registrado (merge por defecto; conserva `mode`/`docs`/`planning`/`documents`; `--replace-fronts` solo reemplaza frentes; commit local del store; `--sync` hace push). Módulo: `lib/store-fronts.mjs`.
+- **Docs canónicas:** [CHEATSHEET.md](CHEATSHEET.md) §0/§3/§4, [GUIA-BROWNFIELD.md](GUIA-BROWNFIELD.md), [GUIA-PRESETS.md](GUIA-PRESETS.md), [docs/workflows.md](docs/workflows.md) y onboarding de equipo alineados al orden init → detect/apply → map → sync.
+- **Modularización del CLI:** el monolito `bin/specboot.mjs` pasa a un bin fino + módulos en `lib/` (`paths`, `util`, `detect`, `skills`, `preset`, `install`, `project`). Misma CLI; `lib/app.mjs` reexporta la superficie pública para tests.
+- **`specboot detect --preset`** (alias `--from-detect`; también `preset create --from-detect`): mapea el stack detectado a IDs de preset, escribe `fronts.*.json` cuando hay manifesto/skills, y reporta **gaps** con opciones concretas (buscar/instalar plugin, crear manifesto, o skills `<tech>-*` + `--heuristic`). `--dry-run` solo planifica; `--force` escribe aunque falten skills declaradas. Guía: [GUIA-BROWNFIELD.md](GUIA-BROWNFIELD.md).
+- **`specboot preset` CRUD:** `list` / `show` / `create` / `update` / `apply` / `attach` / `remove`. `show` solo lee generados; `--resolve` previsualiza. `update` regenera (exige archivo salvo `--force`). `apply` fusiona al store. `attach --topics-from` añade packs a un preset existente.
+- **Presets multi-tech + topics-pack:** `create go,react` o `create go,python,java,react --topics-from ai --attach-to python`. Colisiones de frente se desambiguan; packs (`kind: topics-pack`) expanden varios `topicPrefixes` (p. ej. ai-dev).
+- **`init --stack`** acepta varios techs y packs; flags `--topics-from` / `--attach-to`.
+- Manifestos de ejemplo: `presets/manifests/{go,react,python,java,ai}.specboot.preset.json`. Guía: [GUIA-PRESETS.md](GUIA-PRESETS.md).
+
 ## 0.7.4
 
 Los comandos de OpenSpec disparan solos las skills del arnés. Para actualizar: `git fetch --tags && git checkout v0.7.4 && npm link && specboot install`.
